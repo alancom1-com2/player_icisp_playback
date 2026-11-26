@@ -76,17 +76,17 @@
     #track-artist {
       font-size: 0.84rem;
       color: var(--pink);
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
     .progress-wrap {
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .progress-row {
       display: flex;
       justify-content: space-between;
-      font-size: 0.72rem;
-      color: rgba(255,255,255,0.68);
-      margin-bottom: 5px;
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.72);
+      margin-bottom: 6px;
     }
     #seek-bar {
       width: 100%;
@@ -97,12 +97,11 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 14px;
-      margin-bottom: 10px;
+      gap: 16px;
     }
     .ctrl-btn {
-      width: 50px;
-      height: 50px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       border: none;
       background: linear-gradient(135deg, var(--purple), var(--pink));
@@ -115,28 +114,11 @@
       box-shadow: 0 4px 18px rgba(236, 72, 153, 0.32);
     }
     .ctrl-btn.play-main {
-      width: 60px;
-      height: 60px;
+      width: 62px;
+      height: 62px;
       font-size: 1.25rem;
     }
     .ctrl-btn:active { transform: scale(0.94); }
-    .fallback-box {
-      display: none;
-      width: 100%;
-      background: #141414;
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-    .fallback-box.active { display: block; }
-    #drive-iframe {
-      width: 100%;
-      height: 72px;
-      border: 0;
-      display: block;
-      background: #141414;
-    }
     .search-input {
       width: 100%;
       background: rgba(0,0,0,0.4);
@@ -234,7 +216,7 @@
     <section class="card now-playing">
       <div class="badge" id="status-badge">Pronto para tocar</div>
       <div id="track-title">Selecione uma música na lista</div>
-      <div id="track-artist">Reprodutor nativo HTML5</div>
+      <div id="track-artist">Player próprio</div>
 
       <div class="progress-wrap">
         <div class="progress-row">
@@ -251,10 +233,6 @@
       </div>
 
       <audio id="audio-el" preload="metadata"></audio>
-
-      <div class="fallback-box" id="fallback-box">
-        <iframe id="drive-iframe" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-      </div>
     </section>
 
     <section class="card">
@@ -274,8 +252,6 @@
     const DEFAULT_TRACKS = [{"title": "01 As Bem Aventuranças Play Back - 138", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1TmJaCekYQLAwrGNXEjAWatPriRaC2A_O/view"}, {"title": "02 Cristo Vive Play Back - 136", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/110n3ux0E0qsZLeMoEer6OU1GEHMCDZZv/view"}, {"title": "03 É Jesus Play Back - 137", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1F8p38WnOEtzBTiaOLcBo_D_281_YYDrS/view"}, {"title": "04 Eis Me Aqui Play Back - 160", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1HbIAgoxjkJjdSaEv1qMEElObSSPlXSjp/view"}, {"title": "05 Esculta o Meu Clamor Play Back - 155", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/16l3PhiJqEF4JBndCr2LndLnXylPk3O9U/view"}, {"title": "06 Eu Acredito - 142", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Co-l89yOC_371Jq7HuM13sDgE8Q0DLil/view"}, {"title": "07 Eu Cantarei o Teu Amor Play Back - 143", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1p4pRnoYMHop5obPRUxo2tZN2oKBLOueA/view"}, {"title": "08 Eu Confio no Senhor Play Back - 144", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1eLW8t0yNc7NekqOF6KwTBoWuzD0qFdmS/view"}, {"title": "09 Filhos de Deus Play Back - 145", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1HwqgpaVktK2bRMkH_uaeIXGYzQgnvCxr/view"}, {"title": "10 Fonte de Alegria Play Back - 140", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1jZjbpI5sAeLfxAWVSftVfEL-lcqyJGrC/view"}, {"title": "11 Glorioso Deus Play Back - 135", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1H3ZRA9bHVJV7LteXceUKUDS1Gh9lMSVe/view"}, {"title": "12 Homens de Fé Play Back - 148", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/10TeM10wZLTrfAXR7e5cFqTLHSuBcfpoK/view"}, {"title": "13 Isaías 53 Play Back - 157", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1Tib7e94uYI4W9Ykeo5i1KsoaU24kY6bq/view"}, {"title": "14 Louvado Seja Play Back - 149", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1GbyUuAwOOXA_whz_iTIW4gdVg1SkdNLR/view"}, {"title": "15 Não Há outro Além de Ti Play Back - 154", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1jfvqh1BE5UI7SK9WYByM-qk7gS-rV90d/view"}, {"title": "16 A Nova Jerusalém Play Back - 141", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1SLicFV--HA7Q3Lo6V3nN4K8Mjc_s1TMi/view"}, {"title": "17 O Amor é jesus Play Back - 158", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1QyEHmH6wls_Q2ZTAXi-hO582g6fkORIT/view"}, {"title": "18 O Criador do Céu e da Terra Play Back - 151", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/145krCR8OW1-y1ox7NhTjPgwtvs1NHKk9/view"}, {"title": "19 O Filho Pródigo Play Back - 152", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1M_OowFhc_tNUiBpZUKM5ZJSdz9ohfHw_/view"}, {"title": "20 Pai Amdo Play Back - 159", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1rv_anBR_l3R-DV-kvq6LDeyQIrOQ4EsM/view"}, {"title": "21 Perto de Ti Play Back - 139", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1LO3RkoL07HmItjcEZVQjvbPwE9w8veRA/view"}, {"title": "22 Primeiras Manhãs Play Back - 147", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1n81q5BK73mtXrzqhZoVeisXooUYfxhgc/view"}, {"title": "23 O Santo de Israel Play Back - 153", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1EA_Bhj71knWoPkEI-LatZljonLKeHUvc/view"}, {"title": "24 A Supremacia de Cristo Play Back - 146", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/13VfZAOHfgGMLoN586no6bta4_mohA72h/view"}, {"title": "25 O Único Deus Play Back - 150", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1vsRwhOu_wSPHsc_gcbvDUFERc2ik3ndj/view"}, {"title": "26 Vamos Cantar Ao Senhor Play Back - 156", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1Av4BrwM5kBd5warFG1U8suTl7HM0f2U2/view"}, {"title": "27 A Palavra - 67", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Bt89H5ln4mmUSw5tmec-LNw9VI61418W/view"}, {"title": "28 Acordar e Cantar - 60", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1LCgPHi_Skj_nb7G6oRq2fEAE2N9lnTrW/view"}, {"title": "29 Mostra-me o Caminho - 62", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1tH9p6Tt4od8s7bVcHFtrE6NzdpMNQftp/view"}, {"title": "30 Com os olhos fixoe em Jesus - 74", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1cgbk1hHxzI8NAisxCuZKFafHkUTNZ28b/view"}, {"title": "31 Deus defensor - 65", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1leSe_hKTXS0nnSOJflonzGfo3ODCOAkc/view"}, {"title": "32 Homens comuns - 106", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1ROVx2WmhynwR8aLGgZqVC0egHi45icEB/view"}, {"title": "33 Mais que um pai - 129", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1CRd9L5yp96xn_8aQr76mnvk_Y2MQTv0P/view"}, {"title": "34 Soberano Líder - 71", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Wu_pVq79JRLzb2HzhXTres3Y7B6E8Ml2/view"}, {"title": "35 Aceitos por Deus - 128", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1otpd4eVq6J2ZsuGEPkISjjhJWmZfwHFV/view"}, {"title": "36 Estou seguro - 57", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1VHvwIbg6M04mu3_C0l_KT_qUmvNdoAIx/view"}, {"title": "37 Encontrando Deus - 131", "artist": "Google Drive", "url": "https://drive.google.com/file/d/11NzmuFDP2PJvJuPPnE3mjD0EfjyRZDgD/view"}, {"title": "38 Deus transformador - 63", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1WlawE1aJf8Hn43K5cIZPdSW5EiZ2gEYb/view"}, {"title": "39 Isaías 40-31 - 64", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1hdcaCCWc2QDNbjdGXHwWIdUyAP_zacbG/view"}, {"title": "40 Confesso meu amor - 112", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1jvwaIUc43MO7CxClIRHLRSs0eXnr5Cjw/view"}, {"title": "41 Quero andar contigo - 108", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1b2w54PkDJX1N-MfPJMKuUekAhSegrPqg/view"}, {"title": "42 Viver teu sonho - 110", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1H-zLR9tkFZm8ZzmqhYtl4QqHN83p17fJ/view"}, {"title": "43 O amor maior que há - 102", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1pA2WjhH3cNFyeQRH8voFDUv_yKhP5t70/view"}, {"title": "44 Vivam em paz - 68", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1p1fq1W7_281lauWGRyR1_pwD4HeQbcBi/view"}, {"title": "45 Poderoso Deus - 127", "artist": "Google Drive", "url": "https://drive.google.com/file/d/15juKSWm2CIS0Hk_4T5Gm9UnScADhsyJD/view"}, {"title": "46 Quem iria imaginar - 82", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1qe7d5PVw1n0FlRt2Lx2em-AJ_xwCzcHW/view"}, {"title": "47 Ó Deus - 79", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1rEglEjMG4Bp0md1WCKKGoh1r6jl-BGJ9/view"}, {"title": "48 Salmo 98 - 90", "artist": "Google Drive", "url": "https://drive.google.com/file/d/19yYWBg0kHlrRX9fJf8vaCwACjgF9RKcL/view"}, {"title": "49 Salmo 117 - 93", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1bUK15GgW9fY7sVXx8ak-BFsDUoEWlL_B/view"}, {"title": "50 Salmo 84 - 87", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Uxk3VXVgCOozghk5IyvDURlcGN6XvlzL/view"}];
 
     const audioEl = document.getElementById('audio-el');
-    const driveIframe = document.getElementById('drive-iframe');
-    const fallbackBox = document.getElementById('fallback-box');
     const statusBadge = document.getElementById('status-badge');
     const btnPlay = document.getElementById('btn-play');
     const seekBar = document.getElementById('seek-bar');
@@ -317,15 +293,6 @@
         `https://drive.google.com/uc?export=download&id=${id}`,
         `https://drive.google.com/uc?export=open&id=${id}`
       ];
-    }
-
-    function getDrivePreviewUrl(rawUrl) {
-      const clean = (rawUrl || '').trim();
-      const id = extractDriveId(clean);
-      if (id) {
-        return `https://drive.google.com/file/d/${id}/preview`;
-      }
-      return clean;
     }
 
     function formatTime(sec) {
@@ -406,18 +373,15 @@
       const t = tracks[currentIndex];
       const candidates = getDirectCandidates(t.url);
       if (sourceIndex < candidates.length) {
-        fallbackBox.classList.remove('active');
-        driveIframe.src = '';
         audioEl.src = candidates[sourceIndex];
         audioEl.load();
         if (autoStart) {
           audioEl.play().catch(() => {});
         }
       } else {
-        // Se o Google Drive bloquear fluxo direto de áudio (ex.: escanear vírus em arquivo grande ou bloqueio CORS), abre a caixinha do Drive como contingência
-        statusBadge.textContent = 'Use o reprodutor abaixo';
-        fallbackBox.classList.add('active');
-        driveIframe.src = getDrivePreviewUrl(t.url);
+        statusBadge.textContent = 'Bloqueado pelo Drive';
+        btnPlay.textContent = '▶';
+        showToast('O Google Drive bloqueou o áudio direto desta faixa.');
       }
     }
 
@@ -477,7 +441,7 @@
 
     audioEl.addEventListener('pause', () => {
       btnPlay.textContent = '▶';
-      if (!fallbackBox.classList.contains('active')) {
+      if (statusBadge.textContent !== 'Bloqueado pelo Drive') {
         statusBadge.textContent = 'Pausado';
       }
     });
