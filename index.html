@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Player de Músicas — Google Drive</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --purple: #7c3aed;
+      --pink: #ec4899;
+      --cyan: #06b6d4;
+      --green: #22c55e;
+      --bg: #0d0415;
+      --surface: #1b0d2b;
+      --border: rgba(255, 255, 255, 0.14);
+    }
+    body {
+      background: radial-gradient(circle at top, #1a0530 0%, var(--bg) 70%);
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18px 14px 40px;
+    }
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    header {
+      text-align: center;
+      padding: 8px 0;
+    }
+    header h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #fff, var(--cyan), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.65);
+      margin-top: 4px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .now-playing {
+      text-align: center;
+      border-color: rgba(124, 58, 237, 0.55);
+      background: linear-gradient(145deg, rgba(124,58,237,0.24), rgba(236,72,153,0.14));
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--cyan);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    #track-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 2px;
+      word-break: break-word;
+    }
+    #track-artist {
+      font-size: 0.85rem;
+      color: var(--pink);
+      margin-bottom: 14px;
+    }
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.72);
+      margin-bottom: 14px;
+    }
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--pink);
+      cursor: pointer;
+      height: 5px;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+    }
+    .ctrl-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid var(--border);
+      color: #fff;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .ctrl-btn:active { transform: scale(0.93); }
+    .ctrl-btn.play {
+      width: 60px;
+      height: 60px;
+      font-size: 1.4rem;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      border: none;
+      box-shadow: 0 4px 18px rgba(236, 72, 153, 0.4);
+    }
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .form-row input, .search-input {
+      width: 100%;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .form-row input:focus, .search-input:focus { border-color: var(--cyan); }
+    .search-input {
+      margin-bottom: 10px;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+    }
+    .btn-add {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+    .playlist-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.7);
+      font-weight: 700;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .header-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-share {
+      background: rgba(6, 182, 212, 0.2);
+      border: 1px solid rgba(6, 182, 212, 0.5);
+      color: var(--cyan);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-reset {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: rgba(255,255,255,0.75);
+      padding: 5px 9px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+    #playlist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .track-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .track-item.active {
+      background: rgba(124, 58, 237, 0.28);
+      border-color: var(--purple);
+    }
+    .track-meta { flex: 1; min-width: 0; }
+    .track-meta strong {
+      display: block;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .track-meta span {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.62);
+    }
+    .btn-del {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.55);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+    .hint {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.62);
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+    #toast {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1f1135;
+      border: 1px solid var(--cyan);
+      color: #fff;
+      padding: 9px 16px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      display: none;
+      z-index: 99;
+      max-width: 90vw;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎵 Meu Player Drive</h1>
+      <p>Toca áudios MP3 direto do Google Drive sem travar</p>
+    </header>
+
+    <section class="card now-playing">
+      <div class="badge" id="status-badge">Pronto para tocar</div>
+      <div id="track-title">Selecione uma música na lista</div>
+      <div id="track-artist">134 músicas carregadas da sua pasta</div>
+
+      <div class="progress-wrap">
+        <span id="current-time">0:00</span>
+        <input type="range" id="seek-bar" value="0" min="0" max="100" />
+        <span id="duration">0:00</span>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl-btn" onclick="prevTrack()" title="Anterior">⏮</button>
+        <button class="ctrl-btn play" id="play-btn" onclick="togglePlay()" title="Play/Pause">▶</button>
+        <button class="ctrl-btn" onclick="nextTrack()" title="Próxima">⏭</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="playlist-header">
+        <span>Playlist (<span id="count">0</span>)</span>
+        <div class="header-actions">
+          <button class="btn-reset" onclick="resetFolderPlaylist()" title="Restaurar lista original da pasta">↺ Pasta</button>
+          <button class="btn-share" onclick="copyShareLink()">🔗 Compartilhar</button>
+        </div>
+      </div>
+      <input type="search" class="search-input" id="search-box" placeholder="🔍 Buscar música pelo nome ou número..." oninput="renderPlaylist()" />
+      <ul id="playlist"></ul>
+    </section>
+
+    <section class="card">
+      <div class="form-row">
+        <input type="text" id="in-title" placeholder="Nome da música (ex: Faixa 01)" />
+        <input type="text" id="in-artist" placeholder="Artista ou observação (opcional)" />
+        <input type="url" id="in-url" placeholder="Cole o link de compartilhamento do Google Drive" />
+        <button class="btn-add" onclick="addTrack()">+ Adicionar à Lista</button>
+      </div>
+      <p class="hint">
+        Todas as músicas da sua pasta compartilhada já vêm carregadas na sequência numérica. Para adicionar novas, deixe o arquivo como <strong>"Qualquer pessoa com o link"</strong> no Drive e cole acima.
+      </p>
+    </section>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const DEFAULT_TRACKS = [{"title": "A120 Um só rebanho (1)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1S_aKaP6IsKNotCgOE8TKOCHv0sGVVyzk/view"}, {"title": "60 A Missão (05)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1jBqsy6j28S-ykaHDLngdHoyhDa0n7kjA/view"}, {"title": "61 Nossa missão (06)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1zMbruHmIMdC1xH8WToyQKfRwzu6pVnW5/view"}, {"title": "62 O maior numero possível (07)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1q7tjhmYlCuAXYNZeb3-hiih9HI_8mk8E/view"}, {"title": "A119 Brilho Celeste (9)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1LzOtgAuqxiPe0Zblb6AfpJFHK4u3jr7D/view"}, {"title": "67 Díscipulos verdadeiros (12)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1qDT82SxWJDKfu-O8VfJR93tKxeaTmKG6/view"}, {"title": "A121 Olhamos a Ti (14)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1NPpACtnOvnXruPsM6rSSDnJFMbO61Z9w/view"}, {"title": "A122 Vamos adorar (17)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/14__ouUprZs8_ezULirYEdNlMbCW2YGkh/view"}, {"title": "71 Nós somos livres (18)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1kyZdmI8714jpjhxXLaHI2PVTQh63mmlP/view"}, {"title": "74 Vou andar com Deus (25)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1-zvlxAZEM8WbZJsl2gPFVrPAs2rvi5Lb/view"}, {"title": "75 Sonho inabálavel (26)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1iG-NIw3gA8QvVIAIMaerXU2ScTmwz5LM/view"}, {"title": "77 Por causa do seu amor (28)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1kyEl9o9crBI0MxlmpAHm2BCGDuxO-Syt/view"}, {"title": "A123 Natal(30)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1JK1IbyisEwyvwMsb9FTwzmlAOdWQgYp-/view"}, {"title": "A124 Num berço de palha(31)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1hl-EQBNVgZt-A283HXX8lPTny3Bm1DlX/view"}, {"title": "A125 O primeiro natal(32)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1J2EccbF4YOLMqpC7gbJGx4CudZXzip6x/view"}, {"title": "A127 Falai pelas montanhas(33)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1hCgVeAYWwCytME5ajONUQLKaj0xs-3s_/view"}, {"title": "A126 Estrela de Bélem(34)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1kXNHcZBV0R7wdmlkU0_fm8QDYLqy_0qt/view"}, {"title": "82 Em nossa geração (35)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1N7XCNr-aRkAUuEmuIP2YmxK6PW9dC0Z2/view"}, {"title": "A129 Anjos vieram anunciar(35)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1H7DmMqDsNAfBEl5WuwgVIX-nPfND22iu/view"}, {"title": "83 O mensageiro (36)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/11fiewpK4PTY4_mf6XNyJWoGWIR1l0iU4/view"}, {"title": "A128 Glória(36)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1fZpUBdXUqO8lWpHcx_0ATruqDXsRYBZX/view"}, {"title": "A133 Noite jubilosa(37)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1rqGzpyL7e1WewYbbr4JVryYSxhIOkU4J/view"}, {"title": "85 Eu nunca te deixarei (38)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1FOSR2F6GKjblqo3R6JkITOgCX0_KkQh3/view"}, {"title": "A130 Ó, vinde, fiéis!(38)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1lRLqtDelGNGpr-Tm5hN1vwBt6kRFQaEH/view"}, {"title": "A131 Noite de paz!Noite de amor!(39)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/18TjoJ2mPe-e5rfKVtgEn6rdDXgTcoRyf/view"}, {"title": "A132 Mal supõe aquela gente(40)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1v0hNz5wIWdhRfDh428aaSJfUnoHTEHZT/view"}, {"title": "A134 Ó, vem, Emanuel!(42)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1lhpXERq2zvvV9MiVkQNQ0VI-VGxoFE4N/view"}, {"title": "A112 Consolai meu povo (49)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1vRgh0S3IlAHISEnf6MhZWFBVSEORTSJS/view"}, {"title": "73 O jubileu Cristão (51)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1AHSOgVlHtO8N2mZYcsh0cr-4_Vb2o8BX/view"}, {"title": "76 Senhor poderoso (52)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1UfV58z_VUyz0d2W9kOeMBsAz9xYAiHzF/view"}, {"title": "78 Mateus 28 (53)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1-qe4jy-cPVHeAtjlCgCxItzW0-dGZJH9/view"}, {"title": "79 Cantai ao Deus Eterno (54)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1cOcnUPxzjh_47YWw3UGmw02vyNsyQ0XS/view"}, {"title": "80 Miquéias 6 (55)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/184MZJKbyaJ52imdUlPOSk-KgJ8TzJo2h/view"}, {"title": "81 Pescador (56)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1NezJrI9x9OprjH6iAqSxjaF9AoZPIRmn/view"}, {"title": "36 Estou seguro (57)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1qf60zhfdyi5fQxLmVMXnZxIsoEahT7s1/view"}, {"title": "84 Deus nos chamou (58)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1g3VwpPJPGwBJvPzOymkOdF5BlKRpeaMC/view"}, {"title": "87 Nunca deixarei meu mestre (59)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/162gWcgtx6LloVE2JarFMleUEgjxWyYVm/view"}, {"title": "28 Acordar e Cantar (60)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1glOHGHZXVKDZBNG5Su-xRJNAw7uDsRSr/view"}, {"title": "55 Deus Imortal (61)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/15xZ1e-xfJiD3XDgQ7RY1pxupg0iW2fMu/view"}, {"title": "29 Mostra-me o Caminho (62)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/17wOCBmquT8Ykqk29e1WOQaD42YBG0_y4/view"}, {"title": "38 Deus transformador (63)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Cz4aRrGRunTpb2pD9VQxRPv0cZjIvU9W/view"}, {"title": "39 Isaías 40-31 (64)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1ZIeymS8d0YEzSNKDdDUTlQU7f9gGGPeI/view"}, {"title": "31 Deus defensor (65)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1mFib2gyl-gfFyb-K5kn_CXVUgAzTXUDV/view"}, {"title": "86 Confie no Deus Eterno (66)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1O5EdODNxDEyG9Olikk84bx2CL2b8jpuu/view"}, {"title": "27 A Palavra (67)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1nUW4O5PgSWxUZwR9I10vgvp_gNCt50be/view"}, {"title": "44 Vivam em paz (68)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1bRRJJFN4HTvivYpEMXzmKPzKfazoNNl9/view"}, {"title": "52 Salmo 73 (69)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1kcfj_Aw2NYccT-jYxhj4Rb3kajzhjxBX/view"}, {"title": "56 Tua presença (69)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1ypl0qye0LfYpjuIHudmfYtGzYGBZuUf3/view"}, {"title": "91 Salmo 73 (70)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/11YBxSRvy8gALNqb80S8awVRbjWKSKfC4/view"}, {"title": "34 Soberano Líder (71)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1vov1O2jvwDUcn5wOP7vjXZJoUdlk7oit/view"}, {"title": "A108 Prepare o camino do Rei (72)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Y3nQ43MqUTTn05aRq0zRWNaB6cF6l5Zd/view"}, {"title": "A101 Humilhe-se diante de Deus (73)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Eg79hOx2rAVfdMxnBKrBiJy3bpPo-8_A/view"}, {"title": "30 Com os olhos fixoe em Jesus (74)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Q8lEiKCL9Ef_EWs8zQ7KqJcNGWSrfkWl/view"}, {"title": "A105 De volta para o lar (75)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/12UCKHuGcB9SCixq5FFegOT780qP2bG5S/view"}, {"title": "A118 Salmo 51 (76)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1dEtRcZqYGMCYDAl0IzusNl_uh3FJgdvq/view"}, {"title": "98 Eu amo servir a Deus (77)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1K2F_hMON8ghBMbGG0XW8oNDydM5NIqrF/view"}, {"title": "47 Ó Deus (79)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1WlrX9glFu32eAQ1jsdNp67Wrb5o3sMgR/view"}, {"title": "54 Minha alegria é te adorar (80)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1yzVU0Ivw9uqNYTbL8d1ZGLHJfzF0TQMk/view"}, {"title": "A115 A luta pertence ao Senhor (81)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1AxElV_SHlNBHm0PrktVsUFUUSYSsJ10u/view"}, {"title": "46 Quem iria imaginar (82)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1pg6bY5z6fK4Or-JgQwpBj4BeXmH33rbI/view"}, {"title": "53 Salmo 9 (83)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Xot9RxACHTeNoOGq_CRtHd_1WufUl4et/view"}, {"title": "51 Salmo 34 (84)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1PypsIPhgHXVo91pmLD3gvnoPfd6taqj4/view"}, {"title": "89 Salmo 63 (85)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1cxwU9-X4hiK5Rz34RuZIF9O8kfn7ot1f/view"}, {"title": "92 Salmo 66 (86)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1XWxBpm306SEW93d0iw_hz0VsZpbtNxgn/view"}, {"title": "50 Salmo 84 (87)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1_eDVwTC4M_2rEnzATLdZym2bMw8BcMJ5/view"}, {"title": "94 Salmo 92 (88)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1DMuMhJFYNis1dvvEohxzHgHMNQtSTRgn/view"}, {"title": "90 Salmo 96 (89)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1LO-wO2MLotmF0Wxj5DhAyMefflyUFLxJ/view"}, {"title": "48 Salmo 98 (90)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/15LzRAWSdVOzBVCyhMrrNxqdw2pTBMOUF/view"}, {"title": "88 Salmo 104 (91)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/18rWS3WAufyjekBt_LoJDahtI6-xno464/view"}, {"title": "96 Salmo 108 (92)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1NAnarkx82qy6Z3q8vqS3wQzaFKim8UPi/view"}, {"title": "49 Salmo 117  (93)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1VVm5JXNyEoJpFJdaM4LkirxHbdvcEpwO/view"}, {"title": "95 Salmo 121 (94)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1bECEfkK8CNnYFK2m12dvQbE_w10Ch3m2/view"}, {"title": "93 Salmo 126 (95)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1OViLLX23eWYerJ5Yoo_AO0eb4VDu-yJf/view"}, {"title": "97 Salmo 139 (97)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1m3pkW75ZwyrVDeOY-NXYOjAbHO42e_m8/view"}, {"title": "A106 Abra o coração a Deus (98)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1IPbivgPYtO0VD7Z01K8O0bYrBPskS8Ez/view"}, {"title": "A117 Ó, Deus Senhor (99)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1FzfcrWKKOVChRszpDpR5a_bovzO2uIZW/view"}, {"title": "A116 O Eterno é o nosso Deus (100)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1zWIxO6qfQlof8zwzUGhXUU-7hGO4KqOr/view"}, {"title": "72 Sim, paz e alegria (101)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1eEfSLw8JFINOv93OgUn1jJNT2fCn1V-0/view"}, {"title": "43 O amor maior que há (102)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1RTOW6vUatJu9xbaBC1IE9gAGTa8rR1XV/view"}, {"title": "A109 Cantem alegres (103)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1R4vRHi5JrGaPEz558GPmOblQ3SdibZ0V/view"}, {"title": "A113 Cantemos (104)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/17ltb3vS9ZXSnPPvyStemOKmIeKKeHtnt/view"}, {"title": "A102 Senhor prepara-me (105)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1ragyOsn55E8RXW1cUFOg5EvVBSFeZ66i/view"}, {"title": "32 Homens comuns (106)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1nw9XIyJOq226S34gYsgYsnBHAyNGJUJI/view"}, {"title": "A104 Quero adorar-te (107)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1iYgXld7KoDZkduuAdjIhhTwbYQir_JlM/view"}, {"title": "41 Quero andar contigo (108)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1_hD34MJHpThVW1mrMS_V1neXmH8PudSH/view"}, {"title": "A111 Quem é Deus acima (109)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/179kJleWrEGDenV8y74KwaRT_96I-M9DM/view"}, {"title": "42 Viver teu sonho (110)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1kK6j35X2k32XBqLKopX4ME57_TdE4a1z/view"}, {"title": "40 Confesso meu amor (112)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/17bKpXb9KNqsIFZa8XZwQsI6WDcs59kp3/view"}, {"title": "A100 Esculta Senhor minha oração (113)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1N6KB0BKJAuUvd1om3ZhAxUxXbxyq4cIe/view"}, {"title": "A110 Ele é forte (114)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1f79Sbg3SdSTXDeGZLf6nGudlT-uyrOFH/view"}, {"title": "57 Gratidão (115)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1F_WcQvI4V3XwipHwjCWy0oXDF62gemOb/view"}, {"title": "58 Canção da batalha (116)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1ewfVWRj4BaSXXT-3zQFyPBLTbHMaSLNu/view"}, {"title": "63 Canção do carcereiro (117)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1R8l_Bsg9IrB0TPEOZiwn88TGc_rtdDDu/view"}, {"title": "64 Canção da festa (118)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1jJLIXgnIuAVDB3YUnXULyMp_k9uuQY1W/view"}, {"title": "A107 Da minha alma (119)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1-atALVi2A5IAYq4Txr3ZzGkET4BvgkPN/view"}, {"title": "65 Oração por coragem (120)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1taHjbFOpxdnTmpbCZZeoAwbBf1bXYhXF/view"}, {"title": "66 Amigo (121)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1vSTf2wWhs2orOwD00gBgJADe5tms5oMR/view"}, {"title": "69 Aleluia (122)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1hptiJdWxaok6spHnzcIbEEjlE__NWfnC/view"}, {"title": "A114 Rei dos reis (124)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1uN7y4DB3RZ4lPFsEsSkvmYGE1D_ZG7WV/view"}, {"title": "A103 Réfugio (126)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Mexw6wM2a-d5xpmOS2j_xmX83I4FZDpo/view"}, {"title": "45 Poderoso Deus (127)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1TRnpwIBX6tgEqXFnGmrqgvtFQWJn3XB-/view"}, {"title": "35 Aceitos por Deus (128)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1QBDyuhm-MeSL5vyxT9mfzbbT2cYM0E21/view"}, {"title": "33 Mais que um pai (129)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1mL9oQQVGkcLO5HQG7FqzivBCsYieyZDm/view"}, {"title": "68 Prova ó Deus (130)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1TarolYRL-3hY9vmISmOKLdiYIHGUyeyr/view"}, {"title": "37 Encontrando Deus (131)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/11FgEvTHq5a6vqLmzLMydq4o83O3xbVsU/view"}, {"title": "70 Mostra-me (132)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1KsgGzCSz7rUgwkQtlGhz3QuLnGHbuQOM/view"}, {"title": "99 Homens com visão (133)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1K-lxriSTlY7vSTxpEy85SeTci62qh4sM/view"}, {"title": "59 Sofonias 3 14-17 (134)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1mvAwy2qTfmeIVjguU8Sb_5cq57XH8psd/view"}, {"title": "11 Glorioso Deus (135) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1z7_XP6LLFWAQaU8OwvjA2rnBCOKr9R_E/view"}, {"title": "02 Cristo Vive (136) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1rAarZEJsRTajXIguemfltln0MfK8uMYH/view"}, {"title": "03 É Jesus (137) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1g9RvhXZz2wPaGDqolsRmK1JEHyFX6Rl1/view"}, {"title": "01 As Bem Aventuranças (138) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1OmFkrMScmemKKcWbAGmHWLHDeut2bwQk/view"}, {"title": "21 Perto de Ti (139) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1iT3ojerBURVqmo1EmS-1cBCjjgetHAAr/view"}, {"title": "10 Fonte de Alegria (140) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1fUoIXgHZ6hyCistmG6GeWuxaSAJS5ups/view"}, {"title": "16 A Nova Jerusalém (141) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1JbilGDNHXXMckRqI3pv1RHQ0AdGYfuPR/view"}, {"title": "06 Eu Acredito (142)", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1NUouX4kt3fSVd7VgwzMlKzOcmkLXKgV7/view"}, {"title": "07 Eu Cantarei o Teu Amor (143) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/14AsUGCVCeXKgfapH_wj0B31fIrr26ice/view"}, {"title": "08 Eu Confio no Senhor (144) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1ZFzkVPZqlCievYnMYflA6MV3dc-ksdb-/view"}, {"title": "09 Filhos de Deus (145) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/11rJqdjaGHRFxKAUet2LS6R3YrTnOS5vL/view"}, {"title": "24 A Supremacia de Cristo ( 146) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1_yLoUV4NsUURpjqc9ORjdamSDxIKQVXW/view"}, {"title": "22 Primeiras Manhãs (147) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1DWPm-apFSBrVtQm8qL7PxijLKDE67gHk/view"}, {"title": "12 Homens de Fé (148) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1IQTihsev6Ql-FUOO5LslJIpzIxlCPoTp/view"}, {"title": "14 Louvado Seja (149) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1XOUBR6-wkKuzSpsSCCpiy79WOScWqJIg/view"}, {"title": "25 O Único Deus (150) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1nFwRIR5MWJo9vMl5cclT1tikzDkPF0eY/view"}, {"title": "18 O Criador do Céu e da Terra (151) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1zZfzbaa62xaor-OigvicAa_YUdaYn7ob/view"}, {"title": "19 O Filho Pródigo (152) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1Jr6gefVXLzXN_GPFlCJq1fh8yvX2JDh3/view"}, {"title": "23 O Santo de Israel (153) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1AEMuBzJsunMqo1Hn8TI5WPl-w6ks6D_4/view"}, {"title": "15 Não Há outro Além de Ti (154) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1R4PVXtx6UNWx_RMdTb8jFjss23cP6cx2/view"}, {"title": "05 Esculta o Meu Clamor (155) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/12D9M7O9qHv8SB_TcZQpeJ0yhO2TEYuMP/view"}, {"title": "26 Vamos Cantar Ao Senhor (156) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1knuYAbzht-a8euKL8PNWHw5MEvwNF5vC/view"}, {"title": "13 Isaías 53 (157) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1Gud_gg8xkfDdnldTJZntRVh2bCy_UCYW/view"}, {"title": "17 O Amor é jesus (158) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1_UVWcZVpRB06WnD98_5SbnLWPC7wa_h4/view"}, {"title": "20 Pai Amdo (159) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1Y9eEh-NUY7KFq6XxcBilLPR-dCiG10QP/view"}, {"title": "04 Eis Me Aqui (160) Play Back", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1t4dinRHLscqkjnmP2IcBLr2uSOnyKgqt/view"}];
+
+    const audio = new Audio();
+    audio.preload = 'auto';
+
+    const playBtn = document.getElementById('play-btn');
+    const seekBar = document.getElementById('seek-bar');
+    const statusBadge = document.getElementById('status-badge');
+
+    let tracks = [];
+    let currentIndex = -1;
+    let streamCandidates = [];
+    let candidateIndex = 0;
+    let playSessionId = 0;
+    let stallTimer = null;
+
+    const storage = (() => {
+      try {
+        const testKey = '__player_storage_test__';
+        window.localStorage.setItem(testKey, '1');
+        window.localStorage.removeItem(testKey);
+        return {
+          getItem: (k) => window.localStorage.getItem(k),
+          setItem: (k, v) => window.localStorage.setItem(k, v),
+          removeItem: (k) => window.localStorage.removeItem(k)
+        };
+      } catch (e) {
+        return {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {}
+        };
+      }
+    })();
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3200);
+    }
+
+    function extractDriveId(url) {
+      if (!url) return null;
+      const patterns = [
+        /\/file\/d\/([a-zA-Z0-9_-]+)/,
+        /[?&]id=([a-zA-Z0-9_-]+)/,
+        /\/d\/([a-zA-Z0-9_-]+)/
+      ];
+      for (const p of patterns) {
+        const m = url.match(p);
+        if (m && m[1]) return m[1];
+      }
+      return null;
+    }
+
+    function getStreamCandidates(rawUrl) {
+      const clean = rawUrl.trim();
+      const id = extractDriveId(clean);
+      if (id) {
+        return [
+          `https://docs.google.com/uc?export=download&id=${id}`,
+          `https://drive.google.com/uc?export=download&id=${id}`,
+          `https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t`,
+          `https://docs.google.com/uc?export=open&id=${id}`
+        ];
+      }
+      return [clean];
+    }
+
+    function saveState() {
+      try {
+        storage.setItem('drive_player_tracks_v6', JSON.stringify(tracks));
+      } catch (e) {}
+    }
+
+    function decodeSharedPlaylist(encoded) {
+      const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+      const binary = atob(padded);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const jsonStr = new TextDecoder().decode(bytes);
+      return JSON.parse(jsonStr);
+    }
+
+    function encodeSharedPlaylist(items) {
+      const jsonStr = JSON.stringify(items);
+      const bytes = new TextEncoder().encode(jsonStr);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function loadState() {
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        const shared = params.get('p');
+        if (shared) {
+          const decoded = decodeSharedPlaylist(shared);
+          if (Array.isArray(decoded) && decoded.length > 0) {
+            tracks = decoded;
+            saveState();
+            showToast('Playlist compartilhada carregada!');
+            return;
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const saved = JSON.parse(storage.getItem('drive_player_tracks_v6') || '[]');
+        if (Array.isArray(saved) && saved.length > 0) {
+          tracks = saved;
+          return;
+        }
+      } catch (e) {}
+
+      tracks = DEFAULT_TRACKS.map(item => ({ ...item }));
+    }
+
+    function resetFolderPlaylist() {
+      storage.removeItem('drive_player_tracks_v6');
+      tracks = DEFAULT_TRACKS.map(item => ({ ...item }));
+      currentIndex = -1;
+      clearTimeout(stallTimer);
+      audio.pause();
+      audio.src = '';
+      playBtn.textContent = '▶';
+      statusBadge.textContent = 'Pronto para tocar';
+      document.getElementById('track-title').textContent = 'Selecione uma música na lista';
+      document.getElementById('track-artist').textContent = `${tracks.length} músicas carregadas da sua pasta`;
+      renderPlaylist();
+      showToast('Lista original da pasta restaurada!');
+    }
+
+    function renderPlaylist() {
+      const ul = document.getElementById('playlist');
+      const query = (document.getElementById('search-box').value || '').trim().toLowerCase();
+      document.getElementById('count').textContent = tracks.length;
+
+      const filtered = tracks
+        .map((t, idx) => ({ track: t, index: idx }))
+        .filter(({ track }) => !query || track.title.toLowerCase().includes(query) || (track.artist || '').toLowerCase().includes(query));
+
+      if (filtered.length === 0) {
+        ul.innerHTML = '<li style="color:rgba(255,255,255,0.55);font-size:0.82rem;text-align:center;padding:12px;">Nenhuma música encontrada.</li>';
+        return;
+      }
+
+      ul.innerHTML = filtered.map(({ track: t, index: i }) => `
+        <li class="track-item ${i === currentIndex ? 'active' : ''}" onclick="playTrack(${i})">
+          <div class="track-meta">
+            <strong>${i === currentIndex ? '▶ ' : ''}${escapeHtml(t.title)}</strong>
+            <span>${escapeHtml(t.artist || 'Google Drive')}</span>
+          </div>
+          <button class="btn-del" onclick="event.stopPropagation(); removeTrack(${i})" title="Remover">✕</button>
+        </li>
+      `).join('');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function addTrack() {
+      const title = document.getElementById('in-title').value.trim();
+      const artist = document.getElementById('in-artist').value.trim();
+      const rawUrl = document.getElementById('in-url').value.trim();
+      if (!rawUrl) {
+        showToast('Cole o link da música do Google Drive.');
+        return;
+      }
+      const track = {
+        title: title || `Faixa ${tracks.length + 1}`,
+        artist: artist || 'Google Drive',
+        url: rawUrl
+      };
+      tracks.unshift(track);
+      saveState();
+      renderPlaylist();
+      document.getElementById('in-title').value = '';
+      document.getElementById('in-artist').value = '';
+      document.getElementById('in-url').value = '';
+      showToast('Música adicionada no topo da lista!');
+      playTrack(0);
+    }
+
+    function removeTrack(idx) {
+      tracks.splice(idx, 1);
+      if (idx === currentIndex) {
+        clearTimeout(stallTimer);
+        audio.pause();
+        audio.src = '';
+        currentIndex = -1;
+        playBtn.textContent = '▶';
+        document.getElementById('track-title').textContent = 'Nenhuma música selecionada';
+        document.getElementById('track-artist').textContent = '';
+      } else if (idx < currentIndex) {
+        currentIndex--;
+      }
+      saveState();
+      renderPlaylist();
+    }
+
+    function tryPlayCandidate(session) {
+      if (session !== playSessionId || currentIndex < 0) return;
+      clearTimeout(stallTimer);
+      const url = streamCandidates[candidateIndex];
+      statusBadge.textContent = candidateIndex === 0
+        ? 'Carregando áudio...'
+        : `Conectando (${candidateIndex + 1}/${streamCandidates.length})...`;
+
+      audio.pause();
+      audio.src = url;
+      audio.load();
+
+      stallTimer = setTimeout(() => {
+        if (session === playSessionId && audio.readyState < 2 && audio.paused) {
+          advanceCandidate(session);
+        }
+      }, 8000);
+
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.then(() => {
+          if (session !== playSessionId) return;
+          clearTimeout(stallTimer);
+          playBtn.textContent = '⏸';
+          statusBadge.textContent = 'Tocando agora';
+        }).catch((err) => {
+          if (session !== playSessionId) return;
+          clearTimeout(stallTimer);
+          if (err && err.name === 'NotAllowedError') {
+            playBtn.textContent = '▶';
+            statusBadge.textContent = 'Toque em ▶ para iniciar';
+            return;
+          }
+          advanceCandidate(session);
+        });
+      }
+    }
+
+    function advanceCandidate(session) {
+      if (session !== playSessionId || currentIndex < 0) return;
+      clearTimeout(stallTimer);
+      candidateIndex++;
+      if (candidateIndex < streamCandidates.length) {
+        tryPlayCandidate(session);
+        return;
+      }
+      playBtn.textContent = '▶';
+      statusBadge.textContent = 'Falha ao carregar áudio';
+      showToast('Verifique a conexão ou tente outra faixa.');
+    }
+
+    audio.addEventListener('playing', () => {
+      clearTimeout(stallTimer);
+      playBtn.textContent = '⏸';
+      statusBadge.textContent = 'Tocando agora';
+    });
+
+    audio.addEventListener('error', () => {
+      if (currentIndex >= 0) {
+        advanceCandidate(playSessionId);
+      }
+    });
+
+    function playTrack(idx) {
+      if (idx < 0 || idx >= tracks.length) return;
+      playSessionId++;
+      currentIndex = idx;
+      const t = tracks[idx];
+      document.getElementById('track-title').textContent = t.title;
+      document.getElementById('track-artist').textContent = t.artist || 'Google Drive';
+      document.getElementById('current-time').textContent = '0:00';
+      document.getElementById('duration').textContent = '0:00';
+      seekBar.value = 0;
+
+      streamCandidates = getStreamCandidates(t.url);
+      candidateIndex = 0;
+      tryPlayCandidate(playSessionId);
+      renderPlaylist();
+    }
+
+    function togglePlay() {
+      if (tracks.length === 0) return;
+      if (currentIndex === -1) {
+        playTrack(0);
+        return;
+      }
+      if (audio.paused) {
+        if (!audio.src || audio.error) {
+          candidateIndex = 0;
+          tryPlayCandidate(playSessionId);
+          return;
+        }
+        audio.play().then(() => {
+          playBtn.textContent = '⏸';
+          statusBadge.textContent = 'Tocando agora';
+        }).catch(() => {
+          candidateIndex = 0;
+          tryPlayCandidate(playSessionId);
+        });
+      } else {
+        audio.pause();
+        playBtn.textContent = '▶';
+        statusBadge.textContent = 'Pausado';
+      }
+    }
+
+    function nextTrack() {
+      if (tracks.length === 0) return;
+      playTrack((currentIndex + 1) % tracks.length);
+    }
+
+    function prevTrack() {
+      if (tracks.length === 0) return;
+      playTrack((currentIndex - 1 + tracks.length) % tracks.length);
+    }
+
+    audio.addEventListener('ended', nextTrack);
+
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration && !isNaN(audio.duration)) {
+        seekBar.value = (audio.currentTime / audio.duration) * 100;
+        document.getElementById('current-time').textContent = fmtTime(audio.currentTime);
+        document.getElementById('duration').textContent = fmtTime(audio.duration);
+      }
+    });
+
+    seekBar.addEventListener('input', () => {
+      if (audio.duration && !isNaN(audio.duration)) {
+        audio.currentTime = (seekBar.value / 100) * audio.duration;
+      }
+    });
+
+    function fmtTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function copyShareLink() {
+      if (tracks.length === 0) {
+        showToast('Adicione pelo menos uma música antes de compartilhar.');
+        return;
+      }
+      const encoded = encodeSharedPlaylist(tracks);
+      const base = (window.location.href || '').split('?')[0].split('#')[0];
+      const url = base ? `${base}?p=${encoded}` : `?p=${encoded}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Link da playlist copiado!');
+        }).catch(() => {
+          window.prompt('Copie o link abaixo:', url);
+        });
+      } else {
+        window.prompt('Copie o link abaixo:', url);
+      }
+    }
+
+    loadState();
+    document.getElementById('track-artist').textContent = `${tracks.length} músicas carregadas da sua pasta`;
+    renderPlaylist();
+  </script>
+</body>
+</html>
