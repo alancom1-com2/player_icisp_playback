@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Player Mega • Front-end</title>
+  <title>Player Mega • 50 Faixas</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -132,7 +132,7 @@
     }
     .search-input { margin-bottom: 10px; }
     .textarea-input {
-      min-height: 110px;
+      min-height: 120px;
       resize: vertical;
       margin-bottom: 10px;
       line-height: 1.4;
@@ -248,14 +248,14 @@
 <body>
   <div class="container">
     <header>
-      <h1>🎵 Player Mega • Front-end</h1>
-      <p>Pasta Mega: UFhXiD5A • Sem quadradinho embutido</p>
+      <h1>🎵 Player Mega • 50 Faixas</h1>
+      <p>Pasta UFhXiD5A • Player próprio sem quadradinho</p>
     </header>
 
     <section class="card now-playing">
       <div class="badge" id="status-badge">Pronto para tocar</div>
       <div id="track-title">Nenhuma faixa carregada</div>
-      <div id="track-artist">Adicione links diretos ou cole sua lista abaixo</div>
+      <div id="track-artist">Cole a lista das 50 faixas em "+ Colar Faixas"</div>
 
       <div class="progress-wrap">
         <div class="progress-row">
@@ -285,9 +285,9 @@
 
       <div class="importer-box" id="importer-box">
         <p class="importer-hint">
-          Cole uma linha por música no formato <strong>Nome da música (138) | https://link-direto.mp3</strong> (ou apenas o link). O player formata o título tirando os parênteses e colocando o número após o tracinho.
+          Cole uma faixa por linha no formato <strong>Nome da música (Nº) | https://link-direto-do-audio</strong>. O player remove parênteses, coloca o número após o tracinho e ordena automaticamente.
         </p>
-        <textarea class="textarea-input" id="raw-tracks-input" placeholder="01 As Bem Aventuranças (138) | https://exemplo.com/01.mp3&#10;02 Cristo Vive (136) | https://exemplo.com/02.mp3"></textarea>
+        <textarea class="textarea-input" id="raw-tracks-input" placeholder="01 As Bem Aventuranças (138) | https://...&#10;02 Cristo Vive (136) | https://..."></textarea>
         <button class="btn-primary" onclick="importTracksFromText()">Aplicar e Ordenar Playlist</button>
       </div>
 
@@ -386,7 +386,7 @@
         const meta = parseTitleAndSortKey(titlePart, idx);
         return {
           title: meta.formattedTitle,
-          artist: urlPart.includes('mega.nz') ? 'Mega • Requer link direto' : 'Front-end',
+          artist: urlPart.includes('mega.nz') ? 'Mega • Link não direto' : 'Front-end',
           url: urlPart,
           _sort: meta.sortKey,
           _idx: idx
@@ -459,7 +459,7 @@
         .filter(({ track }) => !query || track.title.toLowerCase().includes(query) || (track.artist || '').toLowerCase().includes(query));
 
       if (filtered.length === 0) {
-        ul.innerHTML = '<li style="color:rgba(255,255,255,0.58);font-size:0.82rem;text-align:center;padding:14px;line-height:1.45;">Nenhuma faixa na lista ainda.<br/>Clique em <strong>+ Colar Faixas</strong> para adicionar seus links e títulos.</li>';
+        ul.innerHTML = '<li style="color:rgba(255,255,255,0.58);font-size:0.82rem;text-align:center;padding:14px;line-height:1.45;">Nenhuma faixa na lista ainda.<br/>Clique em <strong>+ Colar Faixas</strong> para adicionar sua lista.</li>';
         return;
       }
 
@@ -490,10 +490,10 @@
       if (!t.url || t.url.includes('mega.nz')) {
         audioEl.removeAttribute('src');
         btnPlay.textContent = '▶';
-        statusBadge.textContent = 'Requer link direto';
+        statusBadge.textContent = 'Link Mega não direto';
         renderPlaylist();
         if (autoStart) {
-          showToast('Links do Mega não tocam direto na tag <audio> sem link direto de arquivo.');
+          showToast('O link do Mega não fornece áudio direto para o player HTML5.');
         }
         return;
       }
