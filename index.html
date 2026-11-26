@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Player ICISP Play Back</title>
+  <title>Player Mega • Front-end</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -22,7 +22,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 18px 14px 44px;
+      padding: 18px 14px 48px;
     }
     .container {
       width: 100%;
@@ -119,18 +119,25 @@
       font-size: 1.25rem;
     }
     .ctrl-btn:active { transform: scale(0.94); }
-    .search-input {
+    .search-input, .textarea-input {
       width: 100%;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.42);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px 12px;
       color: #fff;
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       outline: none;
-      margin-bottom: 10px;
+      font-family: inherit;
     }
-    .search-input:focus { border-color: var(--cyan); }
+    .search-input { margin-bottom: 10px; }
+    .textarea-input {
+      min-height: 110px;
+      resize: vertical;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .search-input:focus, .textarea-input:focus { border-color: var(--cyan); }
     .playlist-header {
       display: flex;
       justify-content: space-between;
@@ -142,23 +149,55 @@
       color: rgba(255,255,255,0.7);
       font-weight: 700;
       gap: 8px;
+      flex-wrap: wrap;
     }
-    .btn-share {
-      background: rgba(6, 182, 212, 0.2);
-      border: 1px solid rgba(6, 182, 212, 0.5);
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-small {
+      background: rgba(6, 182, 212, 0.18);
+      border: 1px solid rgba(6, 182, 212, 0.45);
       color: var(--cyan);
-      padding: 6px 11px;
+      padding: 6px 10px;
       border-radius: 8px;
       font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.86rem;
+      cursor: pointer;
+    }
+    .importer-box {
+      display: none;
+      margin-bottom: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.32);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .importer-box.open { display: block; }
+    .importer-hint {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.68);
+      margin-bottom: 8px;
+      line-height: 1.4;
     }
     #playlist {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 380px;
+      max-height: 360px;
       overflow-y: auto;
     }
     .track-item {
@@ -209,14 +248,14 @@
 <body>
   <div class="container">
     <header>
-      <h1>🎵 Player ICISP Play Back</h1>
-      <p>50 músicas em sequência (01 a 50)</p>
+      <h1>🎵 Player Mega • Front-end</h1>
+      <p>Pasta Mega: UFhXiD5A • Sem quadradinho embutido</p>
     </header>
 
     <section class="card now-playing">
       <div class="badge" id="status-badge">Pronto para tocar</div>
-      <div id="track-title">Selecione uma música na lista</div>
-      <div id="track-artist">Player próprio</div>
+      <div id="track-title">Nenhuma faixa carregada</div>
+      <div id="track-artist">Adicione links diretos ou cole sua lista abaixo</div>
 
       <div class="progress-wrap">
         <div class="progress-row">
@@ -238,8 +277,20 @@
     <section class="card">
       <div class="playlist-header">
         <span>Playlist (<span id="count">0</span>)</span>
-        <button class="btn-share" onclick="copyShareLink()">🔗 Compartilhar</button>
+        <div class="btn-row">
+          <button class="btn-small" onclick="toggleImporter()">+ Colar Faixas</button>
+          <button class="btn-small" onclick="copyShareLink()">🔗 Compartilhar</button>
+        </div>
       </div>
+
+      <div class="importer-box" id="importer-box">
+        <p class="importer-hint">
+          Cole uma linha por música no formato <strong>Nome da música (138) | https://link-direto.mp3</strong> (ou apenas o link). O player formata o título tirando os parênteses e colocando o número após o tracinho.
+        </p>
+        <textarea class="textarea-input" id="raw-tracks-input" placeholder="01 As Bem Aventuranças (138) | https://exemplo.com/01.mp3&#10;02 Cristo Vive (136) | https://exemplo.com/02.mp3"></textarea>
+        <button class="btn-primary" onclick="importTracksFromText()">Aplicar e Ordenar Playlist</button>
+      </div>
+
       <input type="search" class="search-input" id="search-box" placeholder="🔍 Buscar música pelo nome ou número..." oninput="renderPlaylist()" />
       <ul id="playlist"></ul>
     </section>
@@ -249,7 +300,8 @@
 
   <script>
     const SITE_URL = "https://alancom1-com2.github.io/player_icisp_playback/";
-    const DEFAULT_TRACKS = [{"title": "01 As Bem Aventuranças Play Back - 138", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1TmJaCekYQLAwrGNXEjAWatPriRaC2A_O/view"}, {"title": "02 Cristo Vive Play Back - 136", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/110n3ux0E0qsZLeMoEer6OU1GEHMCDZZv/view"}, {"title": "03 É Jesus Play Back - 137", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1F8p38WnOEtzBTiaOLcBo_D_281_YYDrS/view"}, {"title": "04 Eis Me Aqui Play Back - 160", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1HbIAgoxjkJjdSaEv1qMEElObSSPlXSjp/view"}, {"title": "05 Esculta o Meu Clamor Play Back - 155", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/16l3PhiJqEF4JBndCr2LndLnXylPk3O9U/view"}, {"title": "06 Eu Acredito - 142", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Co-l89yOC_371Jq7HuM13sDgE8Q0DLil/view"}, {"title": "07 Eu Cantarei o Teu Amor Play Back - 143", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1p4pRnoYMHop5obPRUxo2tZN2oKBLOueA/view"}, {"title": "08 Eu Confio no Senhor Play Back - 144", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1eLW8t0yNc7NekqOF6KwTBoWuzD0qFdmS/view"}, {"title": "09 Filhos de Deus Play Back - 145", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1HwqgpaVktK2bRMkH_uaeIXGYzQgnvCxr/view"}, {"title": "10 Fonte de Alegria Play Back - 140", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1jZjbpI5sAeLfxAWVSftVfEL-lcqyJGrC/view"}, {"title": "11 Glorioso Deus Play Back - 135", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1H3ZRA9bHVJV7LteXceUKUDS1Gh9lMSVe/view"}, {"title": "12 Homens de Fé Play Back - 148", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/10TeM10wZLTrfAXR7e5cFqTLHSuBcfpoK/view"}, {"title": "13 Isaías 53 Play Back - 157", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1Tib7e94uYI4W9Ykeo5i1KsoaU24kY6bq/view"}, {"title": "14 Louvado Seja Play Back - 149", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1GbyUuAwOOXA_whz_iTIW4gdVg1SkdNLR/view"}, {"title": "15 Não Há outro Além de Ti Play Back - 154", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1jfvqh1BE5UI7SK9WYByM-qk7gS-rV90d/view"}, {"title": "16 A Nova Jerusalém Play Back - 141", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1SLicFV--HA7Q3Lo6V3nN4K8Mjc_s1TMi/view"}, {"title": "17 O Amor é jesus Play Back - 158", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1QyEHmH6wls_Q2ZTAXi-hO582g6fkORIT/view"}, {"title": "18 O Criador do Céu e da Terra Play Back - 151", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/145krCR8OW1-y1ox7NhTjPgwtvs1NHKk9/view"}, {"title": "19 O Filho Pródigo Play Back - 152", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1M_OowFhc_tNUiBpZUKM5ZJSdz9ohfHw_/view"}, {"title": "20 Pai Amdo Play Back - 159", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1rv_anBR_l3R-DV-kvq6LDeyQIrOQ4EsM/view"}, {"title": "21 Perto de Ti Play Back - 139", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1LO3RkoL07HmItjcEZVQjvbPwE9w8veRA/view"}, {"title": "22 Primeiras Manhãs Play Back - 147", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1n81q5BK73mtXrzqhZoVeisXooUYfxhgc/view"}, {"title": "23 O Santo de Israel Play Back - 153", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1EA_Bhj71knWoPkEI-LatZljonLKeHUvc/view"}, {"title": "24 A Supremacia de Cristo Play Back - 146", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/13VfZAOHfgGMLoN586no6bta4_mohA72h/view"}, {"title": "25 O Único Deus Play Back - 150", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1vsRwhOu_wSPHsc_gcbvDUFERc2ik3ndj/view"}, {"title": "26 Vamos Cantar Ao Senhor Play Back - 156", "artist": "Play Back • Google Drive", "url": "https://drive.google.com/file/d/1Av4BrwM5kBd5warFG1U8suTl7HM0f2U2/view"}, {"title": "27 A Palavra - 67", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Bt89H5ln4mmUSw5tmec-LNw9VI61418W/view"}, {"title": "28 Acordar e Cantar - 60", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1LCgPHi_Skj_nb7G6oRq2fEAE2N9lnTrW/view"}, {"title": "29 Mostra-me o Caminho - 62", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1tH9p6Tt4od8s7bVcHFtrE6NzdpMNQftp/view"}, {"title": "30 Com os olhos fixoe em Jesus - 74", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1cgbk1hHxzI8NAisxCuZKFafHkUTNZ28b/view"}, {"title": "31 Deus defensor - 65", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1leSe_hKTXS0nnSOJflonzGfo3ODCOAkc/view"}, {"title": "32 Homens comuns - 106", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1ROVx2WmhynwR8aLGgZqVC0egHi45icEB/view"}, {"title": "33 Mais que um pai - 129", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1CRd9L5yp96xn_8aQr76mnvk_Y2MQTv0P/view"}, {"title": "34 Soberano Líder - 71", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Wu_pVq79JRLzb2HzhXTres3Y7B6E8Ml2/view"}, {"title": "35 Aceitos por Deus - 128", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1otpd4eVq6J2ZsuGEPkISjjhJWmZfwHFV/view"}, {"title": "36 Estou seguro - 57", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1VHvwIbg6M04mu3_C0l_KT_qUmvNdoAIx/view"}, {"title": "37 Encontrando Deus - 131", "artist": "Google Drive", "url": "https://drive.google.com/file/d/11NzmuFDP2PJvJuPPnE3mjD0EfjyRZDgD/view"}, {"title": "38 Deus transformador - 63", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1WlawE1aJf8Hn43K5cIZPdSW5EiZ2gEYb/view"}, {"title": "39 Isaías 40-31 - 64", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1hdcaCCWc2QDNbjdGXHwWIdUyAP_zacbG/view"}, {"title": "40 Confesso meu amor - 112", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1jvwaIUc43MO7CxClIRHLRSs0eXnr5Cjw/view"}, {"title": "41 Quero andar contigo - 108", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1b2w54PkDJX1N-MfPJMKuUekAhSegrPqg/view"}, {"title": "42 Viver teu sonho - 110", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1H-zLR9tkFZm8ZzmqhYtl4QqHN83p17fJ/view"}, {"title": "43 O amor maior que há - 102", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1pA2WjhH3cNFyeQRH8voFDUv_yKhP5t70/view"}, {"title": "44 Vivam em paz - 68", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1p1fq1W7_281lauWGRyR1_pwD4HeQbcBi/view"}, {"title": "45 Poderoso Deus - 127", "artist": "Google Drive", "url": "https://drive.google.com/file/d/15juKSWm2CIS0Hk_4T5Gm9UnScADhsyJD/view"}, {"title": "46 Quem iria imaginar - 82", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1qe7d5PVw1n0FlRt2Lx2em-AJ_xwCzcHW/view"}, {"title": "47 Ó Deus - 79", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1rEglEjMG4Bp0md1WCKKGoh1r6jl-BGJ9/view"}, {"title": "48 Salmo 98 - 90", "artist": "Google Drive", "url": "https://drive.google.com/file/d/19yYWBg0kHlrRX9fJf8vaCwACjgF9RKcL/view"}, {"title": "49 Salmo 117 - 93", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1bUK15GgW9fY7sVXx8ak-BFsDUoEWlL_B/view"}, {"title": "50 Salmo 84 - 87", "artist": "Google Drive", "url": "https://drive.google.com/file/d/1Uxk3VXVgCOozghk5IyvDURlcGN6XvlzL/view"}];
+    const MEGA_FOLDER_URL = "https://mega.nz/folder/UFhXiD5A#vD55B6fAOVZ7kgCIajeWkg";
+    const DEFAULT_TRACKS = [];
 
     const audioEl = document.getElementById('audio-el');
     const statusBadge = document.getElementById('status-badge');
@@ -260,39 +312,96 @@
 
     let tracks = [];
     let currentIndex = -1;
-    let sourceIndex = 0;
 
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
       t.style.display = 'block';
       clearTimeout(window._toastTimer);
-      window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3000);
+      window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3200);
     }
 
-    function extractDriveId(url) {
-      if (!url) return null;
-      const patterns = [
-        /\/file\/d\/([a-zA-Z0-9_-]+)/,
-        /[?&]id=([a-zA-Z0-9_-]+)/,
-        /\/d\/([a-zA-Z0-9_-]+)/
-      ];
-      for (const p of patterns) {
-        const m = url.match(p);
-        if (m && m[1]) return m[1];
+    function parseTitleAndSortKey(rawTitle, fallbackIdx) {
+      let clean = String(rawTitle || '').replace(/\.mp3$/i, '').trim();
+      let fileNumStr = '';
+      let fileNumInt = 999999;
+
+      const parenMatch = clean.match(/\(\s*(\d+)\s*\)/);
+      if (parenMatch) {
+        fileNumStr = parenMatch[1];
+        fileNumInt = parseInt(fileNumStr, 10);
+        clean = clean.replace(/\s*\(\s*\d+\s*\)/g, ' ').replace(/\s+/g, ' ').trim();
       }
-      return null;
+
+      const leadMatch = clean.match(/^([A-Za-z]?\d+[A-Za-z]?)\s+(.*)$/);
+      let songCodeInt = 999999;
+      let formatted = clean;
+
+      if (leadMatch) {
+        const code = leadMatch[1];
+        const rest = leadMatch[2].trim();
+        const digits = code.replace(/\D/g, '');
+        if (digits) songCodeInt = parseInt(digits, 10);
+        formatted = fileNumStr ? `${code} ${rest} - ${fileNumStr}` : `${code} ${rest}`;
+      } else if (fileNumStr) {
+        formatted = `${clean} - ${fileNumStr}`;
+      }
+
+      return {
+        formattedTitle: formatted || `Faixa ${fallbackIdx + 1}`,
+        sortKey: songCodeInt !== 999999 ? songCodeInt : fileNumInt
+      };
     }
 
-    function getDirectCandidates(rawUrl) {
-      const clean = (rawUrl || '').trim();
-      const id = extractDriveId(clean);
-      if (!id) return [clean];
-      return [
-        `https://docs.google.com/uc?export=download&id=${id}`,
-        `https://drive.google.com/uc?export=download&id=${id}`,
-        `https://drive.google.com/uc?export=open&id=${id}`
-      ];
+    function toggleImporter() {
+      document.getElementById('importer-box').classList.toggle('open');
+    }
+
+    function importTracksFromText() {
+      const text = document.getElementById('raw-tracks-input').value || '';
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (lines.length === 0) {
+        showToast('Cole ao menos uma linha com título e link.');
+        return;
+      }
+
+      const parsed = lines.map((line, idx) => {
+        let titlePart = `Faixa ${idx + 1}`;
+        let urlPart = '';
+
+        if (line.includes('|')) {
+          const parts = line.split('|');
+          titlePart = parts[0].trim();
+          urlPart = parts.slice(1).join('|').trim();
+        } else {
+          const urlMatch = line.match(/(https?:\/\/\S+)/i);
+          if (urlMatch) {
+            urlPart = urlMatch[1].trim();
+            titlePart = line.replace(urlPart, '').replace(/[-–—]+$/, '').trim() || `Faixa ${idx + 1}`;
+          } else {
+            titlePart = line;
+          }
+        }
+
+        const meta = parseTitleAndSortKey(titlePart, idx);
+        return {
+          title: meta.formattedTitle,
+          artist: urlPart.includes('mega.nz') ? 'Mega • Requer link direto' : 'Front-end',
+          url: urlPart,
+          _sort: meta.sortKey,
+          _idx: idx
+        };
+      });
+
+      parsed.sort((a, b) => (a._sort - b._sort) || (a._idx - b._idx));
+      tracks = parsed.map(({ _sort, _idx, ...rest }) => rest);
+      currentIndex = -1;
+      renderPlaylist();
+      if (tracks.length > 0) {
+        playTrack(0, false);
+      }
+      document.getElementById('importer-box').classList.remove('open');
+      showToast(`${tracks.length} faixa(s) carregada(s) e ordenada(s)!`);
     }
 
     function formatTime(sec) {
@@ -350,7 +459,7 @@
         .filter(({ track }) => !query || track.title.toLowerCase().includes(query) || (track.artist || '').toLowerCase().includes(query));
 
       if (filtered.length === 0) {
-        ul.innerHTML = '<li style="color:rgba(255,255,255,0.55);font-size:0.82rem;text-align:center;padding:12px;">Nenhuma música encontrada.</li>';
+        ul.innerHTML = '<li style="color:rgba(255,255,255,0.58);font-size:0.82rem;text-align:center;padding:14px;line-height:1.45;">Nenhuma faixa na lista ainda.<br/>Clique em <strong>+ Colar Faixas</strong> para adicionar seus links e títulos.</li>';
         return;
       }
 
@@ -358,7 +467,7 @@
         <li class="track-item ${i === currentIndex ? 'active' : ''}" onclick="playTrack(${i}, true)">
           <div class="track-meta">
             <strong>${i === currentIndex ? '▶ ' : ''}${escapeHtml(t.title)}</strong>
-            <span>${escapeHtml(t.artist || 'Google Drive')}</span>
+            <span>${escapeHtml(t.artist || 'Front-end')}</span>
           </div>
         </li>
       `).join('');
@@ -368,36 +477,36 @@
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    function tryNextDirectSource(autoStart) {
-      if (currentIndex < 0 || currentIndex >= tracks.length) return;
-      const t = tracks[currentIndex];
-      const candidates = getDirectCandidates(t.url);
-      if (sourceIndex < candidates.length) {
-        audioEl.src = candidates[sourceIndex];
-        audioEl.load();
-        if (autoStart) {
-          audioEl.play().catch(() => {});
-        }
-      } else {
-        statusBadge.textContent = 'Bloqueado pelo Drive';
-        btnPlay.textContent = '▶';
-        showToast('O Google Drive bloqueou o áudio direto desta faixa.');
-      }
-    }
-
     function playTrack(idx, autoStart = true) {
       if (idx < 0 || idx >= tracks.length) return;
       currentIndex = idx;
-      sourceIndex = 0;
       const t = tracks[idx];
       document.getElementById('track-title').textContent = t.title;
-      document.getElementById('track-artist').textContent = t.artist || 'Google Drive';
-      statusBadge.textContent = autoStart ? 'Tocando...' : 'Pronto para tocar';
+      document.getElementById('track-artist').textContent = t.artist || 'Front-end';
       seekBar.value = 0;
       currentTimeEl.textContent = '0:00';
       durationTimeEl.textContent = '0:00';
+
+      if (!t.url || t.url.includes('mega.nz')) {
+        audioEl.removeAttribute('src');
+        btnPlay.textContent = '▶';
+        statusBadge.textContent = 'Requer link direto';
+        renderPlaylist();
+        if (autoStart) {
+          showToast('Links do Mega não tocam direto na tag <audio> sem link direto de arquivo.');
+        }
+        return;
+      }
+
+      audioEl.src = t.url;
+      audioEl.load();
+      statusBadge.textContent = autoStart ? 'Tocando...' : 'Pronto para tocar';
       renderPlaylist();
-      tryNextDirectSource(autoStart);
+      if (autoStart) {
+        audioEl.play().catch(() => {
+          statusBadge.textContent = 'Toque em ▶';
+        });
+      }
     }
 
     function togglePlay() {
@@ -405,15 +514,12 @@
         playTrack(0, true);
         return;
       }
+      if (!audioEl.src) {
+        showToast('Nenhuma URL direta de áudio carregada.');
+        return;
+      }
       if (audioEl.paused) {
-        if (!audioEl.src) {
-          tryNextDirectSource(true);
-        } else {
-          audioEl.play().catch(() => {
-            sourceIndex++;
-            tryNextDirectSource(true);
-          });
-        }
+        audioEl.play().catch(() => {});
       } else {
         audioEl.pause();
       }
@@ -441,9 +547,7 @@
 
     audioEl.addEventListener('pause', () => {
       btnPlay.textContent = '▶';
-      if (statusBadge.textContent !== 'Bloqueado pelo Drive') {
-        statusBadge.textContent = 'Pausado';
-      }
+      if (audioEl.src) statusBadge.textContent = 'Pausado';
     });
 
     audioEl.addEventListener('timeupdate', () => {
@@ -465,14 +569,13 @@
     });
 
     audioEl.addEventListener('error', () => {
-      if (currentIndex < 0) return;
-      sourceIndex++;
-      tryNextDirectSource(true);
+      btnPlay.textContent = '▶';
+      statusBadge.textContent = 'Erro ao carregar áudio';
     });
 
     function copyShareLink() {
       if (tracks.length === 0) {
-        showToast('Nenhuma música disponível para compartilhar.');
+        showToast('Adicione faixas antes de gerar o link.');
         return;
       }
       const encoded = encodeSharedPlaylist(tracks);
