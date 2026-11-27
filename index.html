@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Player Mega • 50 Faixas</title>
+  <title>Player ICISP Play Back</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -119,25 +119,18 @@
       font-size: 1.25rem;
     }
     .ctrl-btn:active { transform: scale(0.94); }
-    .search-input, .textarea-input {
+    .search-input {
       width: 100%;
       background: rgba(0,0,0,0.42);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px 12px;
       color: #fff;
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       outline: none;
-      font-family: inherit;
-    }
-    .search-input { margin-bottom: 10px; }
-    .textarea-input {
-      min-height: 120px;
-      resize: vertical;
       margin-bottom: 10px;
-      line-height: 1.4;
     }
-    .search-input:focus, .textarea-input:focus { border-color: var(--cyan); }
+    .search-input:focus { border-color: var(--cyan); }
     .playlist-header {
       display: flex;
       justify-content: space-between;
@@ -151,11 +144,6 @@
       gap: 8px;
       flex-wrap: wrap;
     }
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
     .btn-small {
       background: rgba(6, 182, 212, 0.18);
       border: 1px solid rgba(6, 182, 212, 0.45);
@@ -166,38 +154,12 @@
       font-weight: 700;
       cursor: pointer;
     }
-    .btn-primary {
-      width: 100%;
-      padding: 10px 14px;
-      border: none;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--purple), var(--pink));
-      color: #fff;
-      font-weight: 700;
-      font-size: 0.86rem;
-      cursor: pointer;
-    }
-    .importer-box {
-      display: none;
-      margin-bottom: 12px;
-      padding: 12px;
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.32);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-    .importer-box.open { display: block; }
-    .importer-hint {
-      font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.68);
-      margin-bottom: 8px;
-      line-height: 1.4;
-    }
     #playlist {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 360px;
+      max-height: 380px;
       overflow-y: auto;
     }
     .track-item {
@@ -248,14 +210,14 @@
 <body>
   <div class="container">
     <header>
-      <h1>🎵 Player Mega • 50 Faixas</h1>
-      <p>Pasta UFhXiD5A • Player próprio sem quadradinho</p>
+      <h1>🎵 Player ICISP Play Back</h1>
+      <p>50 músicas em sequência (pasta: músicas)</p>
     </header>
 
     <section class="card now-playing">
       <div class="badge" id="status-badge">Pronto para tocar</div>
-      <div id="track-title">Nenhuma faixa carregada</div>
-      <div id="track-artist">Cole a lista das 50 faixas em "+ Colar Faixas"</div>
+      <div id="track-title">Selecione uma música na lista</div>
+      <div id="track-artist">Player próprio • GitHub</div>
 
       <div class="progress-wrap">
         <div class="progress-row">
@@ -277,20 +239,8 @@
     <section class="card">
       <div class="playlist-header">
         <span>Playlist (<span id="count">0</span>)</span>
-        <div class="btn-row">
-          <button class="btn-small" onclick="toggleImporter()">+ Colar Faixas</button>
-          <button class="btn-small" onclick="copyShareLink()">🔗 Compartilhar</button>
-        </div>
+        <button class="btn-small" onclick="copyShareLink()">🔗 Compartilhar</button>
       </div>
-
-      <div class="importer-box" id="importer-box">
-        <p class="importer-hint">
-          Cole uma faixa por linha no formato <strong>Nome da música (Nº) | https://link-direto-do-audio</strong>. O player remove parênteses, coloca o número após o tracinho e ordena automaticamente.
-        </p>
-        <textarea class="textarea-input" id="raw-tracks-input" placeholder="01 As Bem Aventuranças (138) | https://...&#10;02 Cristo Vive (136) | https://..."></textarea>
-        <button class="btn-primary" onclick="importTracksFromText()">Aplicar e Ordenar Playlist</button>
-      </div>
-
       <input type="search" class="search-input" id="search-box" placeholder="🔍 Buscar música pelo nome ou número..." oninput="renderPlaylist()" />
       <ul id="playlist"></ul>
     </section>
@@ -300,8 +250,8 @@
 
   <script>
     const SITE_URL = "https://alancom1-com2.github.io/player_icisp_playback/";
-    const MEGA_FOLDER_URL = "https://mega.nz/folder/UFhXiD5A#vD55B6fAOVZ7kgCIajeWkg";
-    const DEFAULT_TRACKS = [];
+    const AUDIO_FOLDER = "músicas";
+    const DEFAULT_TRACKS = [{"title": "01 As Bem Aventuranças Play Back - 138", "artist": "Play Back • ICISP", "filename": "01 As Bem Aventuranças (138) Play Back.mp3"}, {"title": "02 Cristo Vive Play Back - 136", "artist": "Play Back • ICISP", "filename": "02 Cristo Vive (136) Play Back.mp3"}, {"title": "03 É Jesus Play Back - 137", "artist": "Play Back • ICISP", "filename": "03 É Jesus (137) Play Back.mp3"}, {"title": "04 Eis Me Aqui Play Back - 160", "artist": "Play Back • ICISP", "filename": "04 Eis Me Aqui (160) Play Back.mp3"}, {"title": "05 Esculta o Meu Clamor Play Back - 155", "artist": "Play Back • ICISP", "filename": "05 Esculta o Meu Clamor (155) Play Back.mp3"}, {"title": "06 Eu Acredito - 142", "artist": "ICISP", "filename": "06 Eu Acredito (142).mp3"}, {"title": "07 Eu Cantarei o Teu Amor Play Back - 143", "artist": "Play Back • ICISP", "filename": "07 Eu Cantarei o Teu Amor (143) Play Back.mp3"}, {"title": "08 Eu Confio no Senhor Play Back - 144", "artist": "Play Back • ICISP", "filename": "08 Eu Confio no Senhor (144) Play Back.mp3"}, {"title": "09 Filhos de Deus Play Back - 145", "artist": "Play Back • ICISP", "filename": "09 Filhos de Deus (145) Play Back.mp3"}, {"title": "10 Fonte de Alegria Play Back - 140", "artist": "Play Back • ICISP", "filename": "10 Fonte de Alegria (140) Play Back.mp3"}, {"title": "11 Glorioso Deus Play Back - 135", "artist": "Play Back • ICISP", "filename": "11 Glorioso Deus (135) Play Back.mp3"}, {"title": "12 Homens de Fé Play Back - 148", "artist": "Play Back • ICISP", "filename": "12 Homens de Fé (148) Play Back.mp3"}, {"title": "13 Isaías 53 Play Back - 157", "artist": "Play Back • ICISP", "filename": "13 Isaías 53 (157) Play Back.mp3"}, {"title": "14 Louvado Seja Play Back - 149", "artist": "Play Back • ICISP", "filename": "14 Louvado Seja (149) Play Back.mp3"}, {"title": "15 Não Há outro Além de Ti Play Back - 154", "artist": "Play Back • ICISP", "filename": "15 Não Há outro Além de Ti (154) Play Back.mp3"}, {"title": "16 A Nova Jerusalém Play Back - 141", "artist": "Play Back • ICISP", "filename": "16 A Nova Jerusalém (141) Play Back.mp3"}, {"title": "17 O Amor é jesus Play Back - 158", "artist": "Play Back • ICISP", "filename": "17 O Amor é jesus (158) Play Back.mp3"}, {"title": "18 O Criador do Céu e da Terra Play Back - 151", "artist": "Play Back • ICISP", "filename": "18 O Criador do Céu e da Terra (151) Play Back.mp3"}, {"title": "19 O Filho Pródigo Play Back - 152", "artist": "Play Back • ICISP", "filename": "19 O Filho Pródigo (152) Play Back.mp3"}, {"title": "20 Pai Amdo Play Back - 159", "artist": "Play Back • ICISP", "filename": "20 Pai Amdo (159) Play Back.mp3"}, {"title": "21 Perto de Ti Play Back - 139", "artist": "Play Back • ICISP", "filename": "21 Perto de Ti (139) Play Back.mp3"}, {"title": "22 Primeiras Manhãs Play Back - 147", "artist": "Play Back • ICISP", "filename": "22 Primeiras Manhãs (147) Play Back.mp3"}, {"title": "23 O Santo de Israel Play Back - 153", "artist": "Play Back • ICISP", "filename": "23 O Santo de Israel (153) Play Back.mp3"}, {"title": "24 A Supremacia de Cristo Play Back - 146", "artist": "Play Back • ICISP", "filename": "24 A Supremacia de Cristo ( 146) Play Back.mp3"}, {"title": "25 O Único Deus Play Back - 150", "artist": "Play Back • ICISP", "filename": "25 O Único Deus (150) Play Back.mp3"}, {"title": "26 Vamos Cantar Ao Senhor Play Back - 156", "artist": "Play Back • ICISP", "filename": "26 Vamos Cantar Ao Senhor (156) Play Back.mp3"}, {"title": "27 A Palavra - 67", "artist": "ICISP", "filename": "27 A Palavra (67).mp3"}, {"title": "28 Acordar e Cantar - 60", "artist": "ICISP", "filename": "28 Acordar e Cantar (60).mp3"}, {"title": "29 Mostra-me o Caminho - 62", "artist": "ICISP", "filename": "29 Mostra-me o Caminho (62).mp3"}, {"title": "30 Com os olhos fixoe em Jesus - 74", "artist": "ICISP", "filename": "30 Com os olhos fixoe em Jesus (74).mp3"}, {"title": "31 Deus defensor - 65", "artist": "ICISP", "filename": "31 Deus defensor (65).mp3"}, {"title": "32 Homens comuns - 106", "artist": "ICISP", "filename": "32 Homens comuns (106).mp3"}, {"title": "33 Mais que um pai - 129", "artist": "ICISP", "filename": "33 Mais que um pai (129).mp3"}, {"title": "34 Soberano Líder - 71", "artist": "ICISP", "filename": "34 Soberano Líder (71).mp3"}, {"title": "35 Aceitos por Deus - 128", "artist": "ICISP", "filename": "35 Aceitos por Deus (128).mp3"}, {"title": "36 Estou seguro - 57", "artist": "ICISP", "filename": "36 Estou seguro (57).mp3"}, {"title": "37 Encontrando Deus - 131", "artist": "ICISP", "filename": "37 Encontrando Deus (131).mp3"}, {"title": "38 Deus transformador - 63", "artist": "ICISP", "filename": "38 Deus transformador (63).mp3"}, {"title": "39 Isaías 40-31 - 64", "artist": "ICISP", "filename": "39 Isaías 40-31 (64).mp3"}, {"title": "40 Confesso meu amor - 112", "artist": "ICISP", "filename": "40 Confesso meu amor (112).mp3"}, {"title": "41 Quero andar contigo - 108", "artist": "ICISP", "filename": "41 Quero andar contigo (108).mp3"}, {"title": "42 Viver teu sonho - 110", "artist": "ICISP", "filename": "42 Viver teu sonho (110).mp3"}, {"title": "43 O amor maior que há - 102", "artist": "ICISP", "filename": "43 O amor maior que há (102).mp3"}, {"title": "44 Vivam em paz - 68", "artist": "ICISP", "filename": "44 Vivam em paz (68).mp3"}, {"title": "45 Poderoso Deus - 127", "artist": "ICISP", "filename": "45 Poderoso Deus (127).mp3"}, {"title": "46 Quem iria imaginar - 82", "artist": "ICISP", "filename": "46 Quem iria imaginar (82).mp3"}, {"title": "47 Ó Deus - 79", "artist": "ICISP", "filename": "47 Ó Deus (79).mp3"}, {"title": "48 Salmo 98 - 90", "artist": "ICISP", "filename": "48 Salmo 98 (90).mp3"}, {"title": "49 Salmo 117 - 93", "artist": "ICISP", "filename": "49 Salmo 117 (93).mp3"}, {"title": "50 Salmo 84 - 87", "artist": "ICISP", "filename": "50 Salmo 84 (87).mp3"}];
 
     const audioEl = document.getElementById('audio-el');
     const statusBadge = document.getElementById('status-badge');
@@ -312,6 +262,8 @@
 
     let tracks = [];
     let currentIndex = -1;
+    let candidateUrls = [];
+    let candidateIdx = 0;
 
     function showToast(msg) {
       const t = document.getElementById('toast');
@@ -321,87 +273,19 @@
       window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3200);
     }
 
-    function parseTitleAndSortKey(rawTitle, fallbackIdx) {
-      let clean = String(rawTitle || '').replace(/\.mp3$/i, '').trim();
-      let fileNumStr = '';
-      let fileNumInt = 999999;
-
-      const parenMatch = clean.match(/\(\s*(\d+)\s*\)/);
-      if (parenMatch) {
-        fileNumStr = parenMatch[1];
-        fileNumInt = parseInt(fileNumStr, 10);
-        clean = clean.replace(/\s*\(\s*\d+\s*\)/g, ' ').replace(/\s+/g, ' ').trim();
-      }
-
-      const leadMatch = clean.match(/^([A-Za-z]?\d+[A-Za-z]?)\s+(.*)$/);
-      let songCodeInt = 999999;
-      let formatted = clean;
-
-      if (leadMatch) {
-        const code = leadMatch[1];
-        const rest = leadMatch[2].trim();
-        const digits = code.replace(/\D/g, '');
-        if (digits) songCodeInt = parseInt(digits, 10);
-        formatted = fileNumStr ? `${code} ${rest} - ${fileNumStr}` : `${code} ${rest}`;
-      } else if (fileNumStr) {
-        formatted = `${clean} - ${fileNumStr}`;
-      }
-
-      return {
-        formattedTitle: formatted || `Faixa ${fallbackIdx + 1}`,
-        sortKey: songCodeInt !== 999999 ? songCodeInt : fileNumInt
-      };
-    }
-
-    function toggleImporter() {
-      document.getElementById('importer-box').classList.toggle('open');
-    }
-
-    function importTracksFromText() {
-      const text = document.getElementById('raw-tracks-input').value || '';
-      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      if (lines.length === 0) {
-        showToast('Cole ao menos uma linha com título e link.');
-        return;
-      }
-
-      const parsed = lines.map((line, idx) => {
-        let titlePart = `Faixa ${idx + 1}`;
-        let urlPart = '';
-
-        if (line.includes('|')) {
-          const parts = line.split('|');
-          titlePart = parts[0].trim();
-          urlPart = parts.slice(1).join('|').trim();
-        } else {
-          const urlMatch = line.match(/(https?:\/\/\S+)/i);
-          if (urlMatch) {
-            urlPart = urlMatch[1].trim();
-            titlePart = line.replace(urlPart, '').replace(/[-–—]+$/, '').trim() || `Faixa ${idx + 1}`;
-          } else {
-            titlePart = line;
-          }
-        }
-
-        const meta = parseTitleAndSortKey(titlePart, idx);
-        return {
-          title: meta.formattedTitle,
-          artist: urlPart.includes('mega.nz') ? 'Mega • Link não direto' : 'Front-end',
-          url: urlPart,
-          _sort: meta.sortKey,
-          _idx: idx
-        };
-      });
-
-      parsed.sort((a, b) => (a._sort - b._sort) || (a._idx - b._idx));
-      tracks = parsed.map(({ _sort, _idx, ...rest }) => rest);
-      currentIndex = -1;
-      renderPlaylist();
-      if (tracks.length > 0) {
-        playTrack(0, false);
-      }
-      document.getElementById('importer-box').classList.remove('open');
-      showToast(`${tracks.length} faixa(s) carregada(s) e ordenada(s)!`);
+    function buildCandidateUrls(track) {
+      if (track.url) return [track.url];
+      const enc = encodeURIComponent(track.filename);
+      const nfcEnc = encodeURIComponent(track.filename.normalize('NFC'));
+      const nfdEnc = encodeURIComponent(track.filename.normalize('NFD'));
+      const list = [
+        `./${encodeURIComponent(AUDIO_FOLDER)}/${enc}`,
+        `./${encodeURIComponent(AUDIO_FOLDER.normalize('NFC'))}/${nfcEnc}`,
+        `./${encodeURIComponent(AUDIO_FOLDER.normalize('NFD'))}/${nfdEnc}`,
+        `./musicas/${enc}`,
+        `./${enc}`
+      ];
+      return [...new Set(list)];
     }
 
     function formatTime(sec) {
@@ -459,7 +343,7 @@
         .filter(({ track }) => !query || track.title.toLowerCase().includes(query) || (track.artist || '').toLowerCase().includes(query));
 
       if (filtered.length === 0) {
-        ul.innerHTML = '<li style="color:rgba(255,255,255,0.58);font-size:0.82rem;text-align:center;padding:14px;line-height:1.45;">Nenhuma faixa na lista ainda.<br/>Clique em <strong>+ Colar Faixas</strong> para adicionar sua lista.</li>';
+        ul.innerHTML = '<li style="color:rgba(255,255,255,0.55);font-size:0.82rem;text-align:center;padding:12px;">Nenhuma música encontrada.</li>';
         return;
       }
 
@@ -467,7 +351,7 @@
         <li class="track-item ${i === currentIndex ? 'active' : ''}" onclick="playTrack(${i}, true)">
           <div class="track-meta">
             <strong>${i === currentIndex ? '▶ ' : ''}${escapeHtml(t.title)}</strong>
-            <span>${escapeHtml(t.artist || 'Front-end')}</span>
+            <span>${escapeHtml(t.artist || 'ICISP')}</span>
           </div>
         </li>
       `).join('');
@@ -477,36 +361,35 @@
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
+    function tryCurrentCandidate(autoStart) {
+      if (candidateIdx < candidateUrls.length) {
+        audioEl.src = candidateUrls[candidateIdx];
+        audioEl.load();
+        if (autoStart) {
+          audioEl.play().catch(() => {});
+        }
+      } else {
+        btnPlay.textContent = '▶';
+        statusBadge.textContent = 'Arquivo não encontrado';
+        showToast('Verifique se o arquivo está dentro da pasta músicas no GitHub.');
+      }
+    }
+
     function playTrack(idx, autoStart = true) {
       if (idx < 0 || idx >= tracks.length) return;
       currentIndex = idx;
       const t = tracks[idx];
       document.getElementById('track-title').textContent = t.title;
-      document.getElementById('track-artist').textContent = t.artist || 'Front-end';
+      document.getElementById('track-artist').textContent = t.artist || 'ICISP';
+      statusBadge.textContent = autoStart ? 'Tocando...' : 'Pronto para tocar';
       seekBar.value = 0;
       currentTimeEl.textContent = '0:00';
       durationTimeEl.textContent = '0:00';
-
-      if (!t.url || t.url.includes('mega.nz')) {
-        audioEl.removeAttribute('src');
-        btnPlay.textContent = '▶';
-        statusBadge.textContent = 'Link Mega não direto';
-        renderPlaylist();
-        if (autoStart) {
-          showToast('O link do Mega não fornece áudio direto para o player HTML5.');
-        }
-        return;
-      }
-
-      audioEl.src = t.url;
-      audioEl.load();
-      statusBadge.textContent = autoStart ? 'Tocando...' : 'Pronto para tocar';
       renderPlaylist();
-      if (autoStart) {
-        audioEl.play().catch(() => {
-          statusBadge.textContent = 'Toque em ▶';
-        });
-      }
+
+      candidateUrls = buildCandidateUrls(t);
+      candidateIdx = 0;
+      tryCurrentCandidate(autoStart);
     }
 
     function togglePlay() {
@@ -514,12 +397,12 @@
         playTrack(0, true);
         return;
       }
-      if (!audioEl.src) {
-        showToast('Nenhuma URL direta de áudio carregada.');
-        return;
-      }
       if (audioEl.paused) {
-        audioEl.play().catch(() => {});
+        if (!audioEl.src) {
+          tryCurrentCandidate(true);
+        } else {
+          audioEl.play().catch(() => {});
+        }
       } else {
         audioEl.pause();
       }
@@ -547,7 +430,9 @@
 
     audioEl.addEventListener('pause', () => {
       btnPlay.textContent = '▶';
-      if (audioEl.src) statusBadge.textContent = 'Pausado';
+      if (statusBadge.textContent !== 'Arquivo não encontrado') {
+        statusBadge.textContent = 'Pausado';
+      }
     });
 
     audioEl.addEventListener('timeupdate', () => {
@@ -569,26 +454,22 @@
     });
 
     audioEl.addEventListener('error', () => {
-      btnPlay.textContent = '▶';
-      statusBadge.textContent = 'Erro ao carregar áudio';
+      if (currentIndex < 0) return;
+      candidateIdx++;
+      tryCurrentCandidate(!audioEl.paused || statusBadge.textContent === 'Tocando...');
     });
 
     function copyShareLink() {
-      if (tracks.length === 0) {
-        showToast('Adicione faixas antes de gerar o link.');
-        return;
-      }
-      const encoded = encodeSharedPlaylist(tracks);
+      if (tracks.length === 0) return;
       const base = (window.location.href || SITE_URL).split('?')[0].split('#')[0] || SITE_URL;
-      const url = `${base}?p=${encoded}`;
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(() => {
-          showToast('Link da playlist copiado!');
+        navigator.clipboard.writeText(base).then(() => {
+          showToast('Link do player copiado!');
         }).catch(() => {
-          window.prompt('Copie o link abaixo:', url);
+          window.prompt('Copie o link abaixo:', base);
         });
       } else {
-        window.prompt('Copie o link abaixo:', url);
+        window.prompt('Copie o link abaixo:', base);
       }
     }
 
