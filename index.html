@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Player ICISP Play Back</title>
+  <title>Player ICISP • Letras e Repertório</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -13,6 +13,7 @@
       --bg: #0d0415;
       --surface: #1b0d2b;
       --border: rgba(255, 255, 255, 0.14);
+      --nav-bg: #11071c;
     }
     body {
       background: radial-gradient(circle at top, #1a0530 0%, var(--bg) 72%);
@@ -22,42 +23,175 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 18px 14px 48px;
+      padding: 14px 14px 86px;
     }
     .container {
       width: 100%;
       max-width: 480px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
     header {
       text-align: center;
-      padding: 6px 0;
+      padding: 4px 0;
     }
     header h1 {
-      font-size: 1.45rem;
+      font-size: 1.38rem;
       font-weight: 800;
       background: linear-gradient(90deg, #fff, var(--cyan), var(--pink));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     header p {
-      font-size: 0.78rem;
-      color: rgba(255,255,255,0.65);
-      margin-top: 4px;
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.68);
+      margin-top: 3px;
     }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 16px;
+      padding: 15px;
     }
+
+    /* Tela de Letra (Estilo App da foto, fundo preto/escuro, letra branca centralizada) */
+    .lyrics-stage {
+      display: none;
+      background: #070709;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      padding: 14px 16px 18px;
+      flex-direction: column;
+      min-height: 54vh;
+      max-height: 60vh;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
+    }
+    .lyrics-stage.active {
+      display: flex;
+    }
+    .lyrics-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .icon-action {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #fff;
+      border-radius: 999px;
+      height: 34px;
+      padding: 0 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .lyrics-song-title {
+      flex: 1;
+      text-align: center;
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lyrics-category-tag {
+      text-align: center;
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.65);
+      margin-top: 10px;
+      margin-bottom: 8px;
+      letter-spacing: 0.04em;
+    }
+    .lyrics-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 6px 14px;
+      text-align: center;
+      color: #ffffff;
+      font-size: 1.04rem;
+      line-height: 1.62;
+      white-space: pre-wrap;
+    }
+    .lyrics-empty-hint {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin-top: 18px;
+    }
+    .lyrics-editor {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .lyrics-editor.open {
+      display: flex;
+    }
+    .lyrics-textarea {
+      width: 100%;
+      min-height: 180px;
+      background: #121218;
+      border: 1px solid var(--cyan);
+      border-radius: 12px;
+      padding: 12px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      resize: vertical;
+      outline: none;
+    }
+    .btn-gradient {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Player colorido (abaixa e compacta quando a letra abre) */
     .now-playing {
       text-align: center;
       border-color: rgba(124, 58, 237, 0.55);
-      background: linear-gradient(145deg, rgba(124,58,237,0.25), rgba(236,72,153,0.14));
+      background: linear-gradient(145deg, rgba(124,58,237,0.28), rgba(236,72,153,0.16));
+      transition: all 0.25s ease;
     }
+    .now-playing.compact {
+      padding: 11px 14px;
+    }
+    .now-playing.compact .badge,
+    .now-playing.compact #track-artist {
+      display: none;
+    }
+    .now-playing.compact #track-title {
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+    .now-playing.compact .progress-wrap {
+      margin-bottom: 10px;
+    }
+    .now-playing.compact .ctrl-btn {
+      width: 42px;
+      height: 42px;
+      font-size: 0.95rem;
+    }
+    .now-playing.compact .ctrl-btn.play-main {
+      width: 50px;
+      height: 50px;
+      font-size: 1.1rem;
+    }
+
     .badge {
       display: inline-block;
       font-size: 0.65rem;
@@ -65,28 +199,28 @@
       letter-spacing: 0.12em;
       color: var(--cyan);
       font-weight: 700;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
     #track-title {
-      font-size: 1.15rem;
+      font-size: 1.12rem;
       font-weight: 800;
       margin-bottom: 3px;
       word-break: break-word;
     }
     #track-artist {
-      font-size: 0.84rem;
+      font-size: 0.82rem;
       color: var(--pink);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .progress-wrap {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .progress-row {
       display: flex;
       justify-content: space-between;
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       color: rgba(255,255,255,0.72);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
     #seek-bar {
       width: 100%;
@@ -100,13 +234,13 @@
       gap: 16px;
     }
     .ctrl-btn {
-      width: 52px;
-      height: 52px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       border: none;
       background: linear-gradient(135deg, var(--purple), var(--pink));
       color: #fff;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -114,11 +248,16 @@
       box-shadow: 0 4px 18px rgba(236, 72, 153, 0.32);
     }
     .ctrl-btn.play-main {
-      width: 62px;
-      height: 62px;
-      font-size: 1.25rem;
+      width: 60px;
+      height: 60px;
+      font-size: 1.2rem;
     }
     .ctrl-btn:active { transform: scale(0.94); }
+
+    /* Lista de Músicas */
+    .playlist-card.hidden {
+      display: none;
+    }
     .search-input {
       width: 100%;
       background: rgba(0,0,0,0.42);
@@ -136,19 +275,18 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.72);
       font-weight: 700;
       gap: 8px;
-      flex-wrap: wrap;
     }
     .btn-small {
       background: rgba(6, 182, 212, 0.18);
       border: 1px solid rgba(6, 182, 212, 0.45);
       color: var(--cyan);
-      padding: 6px 10px;
+      padding: 5px 10px;
       border-radius: 8px;
       font-size: 0.72rem;
       font-weight: 700;
@@ -159,7 +297,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 380px;
+      max-height: 360px;
       overflow-y: auto;
     }
     .track-item {
@@ -186,20 +324,114 @@
       text-overflow: ellipsis;
     }
     .track-meta span {
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       color: rgba(255,255,255,0.62);
+    }
+    .lyric-pill {
+      font-size: 0.68rem;
+      padding: 3px 8px;
+      border-radius: 99px;
+      background: rgba(6, 182, 212, 0.16);
+      color: var(--cyan);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      white-space: nowrap;
+    }
+
+    /* Barra inferior de categorias/pastas (inspirada nos ícones da foto) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(17, 7, 28, 0.96);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 6px 10px;
+      z-index: 50;
+    }
+    .nav-item {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.62);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 10px;
+    }
+    .nav-item svg {
+      width: 21px;
+      height: 21px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+    .nav-item.active {
+      color: var(--cyan);
+    }
+
+    /* Modal para adicionar nova pasta/categoria ou música */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 80;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-box {
+      width: 100%;
+      max-width: 440px;
+      background: #190c28;
+      border: 1px solid var(--purple);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .modal-box h3 {
+      font-size: 1rem;
+      color: #fff;
+    }
+    .modal-box p {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.4;
+    }
+    .modal-input {
+      width: 100%;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 0.86rem;
+      outline: none;
     }
     #toast {
       position: fixed;
-      bottom: 18px;
+      top: 16px;
       left: 50%;
       transform: translateX(-50%);
       background: #1f1135;
       border: 1px solid var(--cyan);
       color: #fff;
-      padding: 9px 16px;
+      padding: 8px 16px;
       border-radius: 99px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       display: none;
       z-index: 99;
       max-width: 90vw;
@@ -209,12 +441,33 @@
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>🎵 Player ICISP Play Back</h1>
-      <p>50 músicas em sequência (pasta: músicas)</p>
+    <header id="main-header">
+      <h1>🎵 Player ICISP</h1>
+      <p id="category-subtitle">Pasta: músicas • 50 faixas</p>
     </header>
 
-    <section class="card now-playing">
+    <!-- Tela de Letra (abre automaticamente ao tocar uma música) -->
+    <section class="lyrics-stage" id="lyrics-stage">
+      <div class="lyrics-topbar">
+        <button class="icon-action" onclick="closeLyricsView()" title="Voltar à lista">← Lista</button>
+        <div class="lyrics-song-title" id="lyrics-title">Título da Música</div>
+        <button class="icon-action" onclick="toggleLyricsEditor()" title="Editar ou colar letra">••• Letra</button>
+      </div>
+      <div class="lyrics-category-tag" id="lyrics-category-label">Hinos • ICISP</div>
+
+      <div class="lyrics-scroll" id="lyrics-display"></div>
+
+      <div class="lyrics-editor" id="lyrics-editor">
+        <textarea class="lyrics-textarea" id="lyrics-textarea" placeholder="Cole ou escreva aqui a letra completa desta música..."></textarea>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-gradient" style="flex:1;" onclick="saveCurrentLyric()">Salvar Letra</button>
+          <button class="icon-action" onclick="toggleLyricsEditor()">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Player Colorido (desce e fica compacto quando a letra está aberta) -->
+    <section class="card now-playing" id="player-card">
       <div class="badge" id="status-badge">Pronto para tocar</div>
       <div id="track-title">Selecione uma música na lista</div>
       <div id="track-artist">Player próprio • GitHub</div>
@@ -236,22 +489,67 @@
       <audio id="audio-el" preload="metadata"></audio>
     </section>
 
-    <section class="card">
+    <!-- Lista de Músicas da Categoria Ativa -->
+    <section class="card playlist-card" id="playlist-card">
       <div class="playlist-header">
-        <span>Playlist (<span id="count">0</span>)</span>
-        <button class="btn-small" onclick="copyShareLink()">🔗 Compartilhar</button>
+        <span id="playlist-label">Músicas (<span id="count">0</span>)</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-small" onclick="openAddTrackModal()">+ Faixa</button>
+          <button class="btn-small" onclick="copyShareLink()">🔗 Link</button>
+        </div>
       </div>
       <input type="search" class="search-input" id="search-box" placeholder="🔍 Buscar música pelo nome ou número..." oninput="renderPlaylist()" />
       <ul id="playlist"></ul>
     </section>
   </div>
 
+  <!-- Barra de Navegação Inferior (Pastas / Categorias) -->
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+
+  <!-- Modal para Nova Pasta ou Nova Música -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal-box" id="modal-content"></div>
+  </div>
+
   <div id="toast"></div>
 
   <script>
     const SITE_URL = "https://alancom1-com2.github.io/player_icisp_playback/";
-    const AUDIO_FOLDER = "músicas";
-    const DEFAULT_TRACKS = [{"title": "01 As Bem Aventuranças Play Back - 138", "artist": "Play Back • ICISP", "filename": "01 As Bem Aventuranças (138) Play Back.mp3"}, {"title": "02 Cristo Vive Play Back - 136", "artist": "Play Back • ICISP", "filename": "02 Cristo Vive (136) Play Back.mp3"}, {"title": "03 É Jesus Play Back - 137", "artist": "Play Back • ICISP", "filename": "03 É Jesus (137) Play Back.mp3"}, {"title": "04 Eis Me Aqui Play Back - 160", "artist": "Play Back • ICISP", "filename": "04 Eis Me Aqui (160) Play Back.mp3"}, {"title": "05 Esculta o Meu Clamor Play Back - 155", "artist": "Play Back • ICISP", "filename": "05 Esculta o Meu Clamor (155) Play Back.mp3"}, {"title": "06 Eu Acredito - 142", "artist": "ICISP", "filename": "06 Eu Acredito (142).mp3"}, {"title": "07 Eu Cantarei o Teu Amor Play Back - 143", "artist": "Play Back • ICISP", "filename": "07 Eu Cantarei o Teu Amor (143) Play Back.mp3"}, {"title": "08 Eu Confio no Senhor Play Back - 144", "artist": "Play Back • ICISP", "filename": "08 Eu Confio no Senhor (144) Play Back.mp3"}, {"title": "09 Filhos de Deus Play Back - 145", "artist": "Play Back • ICISP", "filename": "09 Filhos de Deus (145) Play Back.mp3"}, {"title": "10 Fonte de Alegria Play Back - 140", "artist": "Play Back • ICISP", "filename": "10 Fonte de Alegria (140) Play Back.mp3"}, {"title": "11 Glorioso Deus Play Back - 135", "artist": "Play Back • ICISP", "filename": "11 Glorioso Deus (135) Play Back.mp3"}, {"title": "12 Homens de Fé Play Back - 148", "artist": "Play Back • ICISP", "filename": "12 Homens de Fé (148) Play Back.mp3"}, {"title": "13 Isaías 53 Play Back - 157", "artist": "Play Back • ICISP", "filename": "13 Isaías 53 (157) Play Back.mp3"}, {"title": "14 Louvado Seja Play Back - 149", "artist": "Play Back • ICISP", "filename": "14 Louvado Seja (149) Play Back.mp3"}, {"title": "15 Não Há outro Além de Ti Play Back - 154", "artist": "Play Back • ICISP", "filename": "15 Não Há outro Além de Ti (154) Play Back.mp3"}, {"title": "16 A Nova Jerusalém Play Back - 141", "artist": "Play Back • ICISP", "filename": "16 A Nova Jerusalém (141) Play Back.mp3"}, {"title": "17 O Amor é jesus Play Back - 158", "artist": "Play Back • ICISP", "filename": "17 O Amor é jesus (158) Play Back.mp3"}, {"title": "18 O Criador do Céu e da Terra Play Back - 151", "artist": "Play Back • ICISP", "filename": "18 O Criador do Céu e da Terra (151) Play Back.mp3"}, {"title": "19 O Filho Pródigo Play Back - 152", "artist": "Play Back • ICISP", "filename": "19 O Filho Pródigo (152) Play Back.mp3"}, {"title": "20 Pai Amdo Play Back - 159", "artist": "Play Back • ICISP", "filename": "20 Pai Amdo (159) Play Back.mp3"}, {"title": "21 Perto de Ti Play Back - 139", "artist": "Play Back • ICISP", "filename": "21 Perto de Ti (139) Play Back.mp3"}, {"title": "22 Primeiras Manhãs Play Back - 147", "artist": "Play Back • ICISP", "filename": "22 Primeiras Manhãs (147) Play Back.mp3"}, {"title": "23 O Santo de Israel Play Back - 153", "artist": "Play Back • ICISP", "filename": "23 O Santo de Israel (153) Play Back.mp3"}, {"title": "24 A Supremacia de Cristo Play Back - 146", "artist": "Play Back • ICISP", "filename": "24 A Supremacia de Cristo ( 146) Play Back.mp3"}, {"title": "25 O Único Deus Play Back - 150", "artist": "Play Back • ICISP", "filename": "25 O Único Deus (150) Play Back.mp3"}, {"title": "26 Vamos Cantar Ao Senhor Play Back - 156", "artist": "Play Back • ICISP", "filename": "26 Vamos Cantar Ao Senhor (156) Play Back.mp3"}, {"title": "27 A Palavra - 67", "artist": "ICISP", "filename": "27 A Palavra (67).mp3"}, {"title": "28 Acordar e Cantar - 60", "artist": "ICISP", "filename": "28 Acordar e Cantar (60).mp3"}, {"title": "29 Mostra-me o Caminho - 62", "artist": "ICISP", "filename": "29 Mostra-me o Caminho (62).mp3"}, {"title": "30 Com os olhos fixoe em Jesus - 74", "artist": "ICISP", "filename": "30 Com os olhos fixoe em Jesus (74).mp3"}, {"title": "31 Deus defensor - 65", "artist": "ICISP", "filename": "31 Deus defensor (65).mp3"}, {"title": "32 Homens comuns - 106", "artist": "ICISP", "filename": "32 Homens comuns (106).mp3"}, {"title": "33 Mais que um pai - 129", "artist": "ICISP", "filename": "33 Mais que um pai (129).mp3"}, {"title": "34 Soberano Líder - 71", "artist": "ICISP", "filename": "34 Soberano Líder (71).mp3"}, {"title": "35 Aceitos por Deus - 128", "artist": "ICISP", "filename": "35 Aceitos por Deus (128).mp3"}, {"title": "36 Estou seguro - 57", "artist": "ICISP", "filename": "36 Estou seguro (57).mp3"}, {"title": "37 Encontrando Deus - 131", "artist": "ICISP", "filename": "37 Encontrando Deus (131).mp3"}, {"title": "38 Deus transformador - 63", "artist": "ICISP", "filename": "38 Deus transformador (63).mp3"}, {"title": "39 Isaías 40-31 - 64", "artist": "ICISP", "filename": "39 Isaías 40-31 (64).mp3"}, {"title": "40 Confesso meu amor - 112", "artist": "ICISP", "filename": "40 Confesso meu amor (112).mp3"}, {"title": "41 Quero andar contigo - 108", "artist": "ICISP", "filename": "41 Quero andar contigo (108).mp3"}, {"title": "42 Viver teu sonho - 110", "artist": "ICISP", "filename": "42 Viver teu sonho (110).mp3"}, {"title": "43 O amor maior que há - 102", "artist": "ICISP", "filename": "43 O amor maior que há (102).mp3"}, {"title": "44 Vivam em paz - 68", "artist": "ICISP", "filename": "44 Vivam em paz (68).mp3"}, {"title": "45 Poderoso Deus - 127", "artist": "ICISP", "filename": "45 Poderoso Deus (127).mp3"}, {"title": "46 Quem iria imaginar - 82", "artist": "ICISP", "filename": "46 Quem iria imaginar (82).mp3"}, {"title": "47 Ó Deus - 79", "artist": "ICISP", "filename": "47 Ó Deus (79).mp3"}, {"title": "48 Salmo 98 - 90", "artist": "ICISP", "filename": "48 Salmo 98 (90).mp3"}, {"title": "49 Salmo 117 - 93", "artist": "ICISP", "filename": "49 Salmo 117 (93).mp3"}, {"title": "50 Salmo 84 - 87", "artist": "ICISP", "filename": "50 Salmo 84 (87).mp3"}];
+    const INITIAL_TRACKS = [{"title": "01 As Bem Aventuranças Play Back - 138", "artist": "Play Back • ICISP", "filename": "01 As Bem Aventuranças (138) Play Back.mp3", "lyrics": ""}, {"title": "02 Cristo Vive Play Back - 136", "artist": "Play Back • ICISP", "filename": "02 Cristo Vive (136) Play Back.mp3", "lyrics": ""}, {"title": "03 É Jesus Play Back - 137", "artist": "Play Back • ICISP", "filename": "03 É Jesus (137) Play Back.mp3", "lyrics": ""}, {"title": "04 Eis Me Aqui Play Back - 160", "artist": "Play Back • ICISP", "filename": "04 Eis Me Aqui (160) Play Back.mp3", "lyrics": ""}, {"title": "05 Esculta o Meu Clamor Play Back - 155", "artist": "Play Back • ICISP", "filename": "05 Esculta o Meu Clamor (155) Play Back.mp3", "lyrics": ""}, {"title": "06 Eu Acredito - 142", "artist": "ICISP", "filename": "06 Eu Acredito (142).mp3", "lyrics": ""}, {"title": "07 Eu Cantarei o Teu Amor Play Back - 143", "artist": "Play Back • ICISP", "filename": "07 Eu Cantarei o Teu Amor (143) Play Back.mp3", "lyrics": ""}, {"title": "08 Eu Confio no Senhor Play Back - 144", "artist": "Play Back • ICISP", "filename": "08 Eu Confio no Senhor (144) Play Back.mp3", "lyrics": ""}, {"title": "09 Filhos de Deus Play Back - 145", "artist": "Play Back • ICISP", "filename": "09 Filhos de Deus (145) Play Back.mp3", "lyrics": ""}, {"title": "10 Fonte de Alegria Play Back - 140", "artist": "Play Back • ICISP", "filename": "10 Fonte de Alegria (140) Play Back.mp3", "lyrics": ""}, {"title": "11 Glorioso Deus Play Back - 135", "artist": "Play Back • ICISP", "filename": "11 Glorioso Deus (135) Play Back.mp3", "lyrics": ""}, {"title": "12 Homens de Fé Play Back - 148", "artist": "Play Back • ICISP", "filename": "12 Homens de Fé (148) Play Back.mp3", "lyrics": ""}, {"title": "13 Isaías 53 Play Back - 157", "artist": "Play Back • ICISP", "filename": "13 Isaías 53 (157) Play Back.mp3", "lyrics": ""}, {"title": "14 Louvado Seja Play Back - 149", "artist": "Play Back • ICISP", "filename": "14 Louvado Seja (149) Play Back.mp3", "lyrics": ""}, {"title": "15 Não Há outro Além de Ti Play Back - 154", "artist": "Play Back • ICISP", "filename": "15 Não Há outro Além de Ti (154) Play Back.mp3", "lyrics": ""}, {"title": "16 A Nova Jerusalém Play Back - 141", "artist": "Play Back • ICISP", "filename": "16 A Nova Jerusalém (141) Play Back.mp3", "lyrics": ""}, {"title": "17 O Amor é jesus Play Back - 158", "artist": "Play Back • ICISP", "filename": "17 O Amor é jesus (158) Play Back.mp3", "lyrics": ""}, {"title": "18 O Criador do Céu e da Terra Play Back - 151", "artist": "Play Back • ICISP", "filename": "18 O Criador do Céu e da Terra (151) Play Back.mp3", "lyrics": ""}, {"title": "19 O Filho Pródigo Play Back - 152", "artist": "Play Back • ICISP", "filename": "19 O Filho Pródigo (152) Play Back.mp3", "lyrics": ""}, {"title": "20 Pai Amdo Play Back - 159", "artist": "Play Back • ICISP", "filename": "20 Pai Amdo (159) Play Back.mp3", "lyrics": ""}, {"title": "21 Perto de Ti Play Back - 139", "artist": "Play Back • ICISP", "filename": "21 Perto de Ti (139) Play Back.mp3", "lyrics": ""}, {"title": "22 Primeiras Manhãs Play Back - 147", "artist": "Play Back • ICISP", "filename": "22 Primeiras Manhãs (147) Play Back.mp3", "lyrics": ""}, {"title": "23 O Santo de Israel Play Back - 153", "artist": "Play Back • ICISP", "filename": "23 O Santo de Israel (153) Play Back.mp3", "lyrics": ""}, {"title": "24 A Supremacia de Cristo Play Back - 146", "artist": "Play Back • ICISP", "filename": "24 A Supremacia de Cristo ( 146) Play Back.mp3", "lyrics": ""}, {"title": "25 O Único Deus Play Back - 150", "artist": "Play Back • ICISP", "filename": "25 O Único Deus (150) Play Back.mp3", "lyrics": ""}, {"title": "26 Vamos Cantar Ao Senhor Play Back - 156", "artist": "Play Back • ICISP", "filename": "26 Vamos Cantar Ao Senhor (156) Play Back.mp3", "lyrics": ""}, {"title": "27 A Palavra - 67", "artist": "ICISP", "filename": "27 A Palavra (67).mp3", "lyrics": ""}, {"title": "28 Acordar e Cantar - 60", "artist": "ICISP", "filename": "28 Acordar e Cantar (60).mp3", "lyrics": ""}, {"title": "29 Mostra-me o Caminho - 62", "artist": "ICISP", "filename": "29 Mostra-me o Caminho (62).mp3", "lyrics": ""}, {"title": "30 Com os olhos fixoe em Jesus - 74", "artist": "ICISP", "filename": "30 Com os olhos fixoe em Jesus (74).mp3", "lyrics": ""}, {"title": "31 Deus defensor - 65", "artist": "ICISP", "filename": "31 Deus defensor (65).mp3", "lyrics": ""}, {"title": "32 Homens comuns - 106", "artist": "ICISP", "filename": "32 Homens comuns (106).mp3", "lyrics": ""}, {"title": "33 Mais que um pai - 129", "artist": "ICISP", "filename": "33 Mais que um pai (129).mp3", "lyrics": ""}, {"title": "34 Soberano Líder - 71", "artist": "ICISP", "filename": "34 Soberano Líder (71).mp3", "lyrics": ""}, {"title": "35 Aceitos por Deus - 128", "artist": "ICISP", "filename": "35 Aceitos por Deus (128).mp3", "lyrics": ""}, {"title": "36 Estou seguro - 57", "artist": "ICISP", "filename": "36 Estou seguro (57).mp3", "lyrics": ""}, {"title": "37 Encontrando Deus - 131", "artist": "ICISP", "filename": "37 Encontrando Deus (131).mp3", "lyrics": ""}, {"title": "38 Deus transformador - 63", "artist": "ICISP", "filename": "38 Deus transformador (63).mp3", "lyrics": ""}, {"title": "39 Isaías 40-31 - 64", "artist": "ICISP", "filename": "39 Isaías 40-31 (64).mp3", "lyrics": ""}, {"title": "40 Confesso meu amor - 112", "artist": "ICISP", "filename": "40 Confesso meu amor (112).mp3", "lyrics": ""}, {"title": "41 Quero andar contigo - 108", "artist": "ICISP", "filename": "41 Quero andar contigo (108).mp3", "lyrics": ""}, {"title": "42 Viver teu sonho - 110", "artist": "ICISP", "filename": "42 Viver teu sonho (110).mp3", "lyrics": ""}, {"title": "43 O amor maior que há - 102", "artist": "ICISP", "filename": "43 O amor maior que há (102).mp3", "lyrics": ""}, {"title": "44 Vivam em paz - 68", "artist": "ICISP", "filename": "44 Vivam em paz (68).mp3", "lyrics": ""}, {"title": "45 Poderoso Deus - 127", "artist": "ICISP", "filename": "45 Poderoso Deus (127).mp3", "lyrics": ""}, {"title": "46 Quem iria imaginar - 82", "artist": "ICISP", "filename": "46 Quem iria imaginar (82).mp3", "lyrics": ""}, {"title": "47 Ó Deus - 79", "artist": "ICISP", "filename": "47 Ó Deus (79).mp3", "lyrics": ""}, {"title": "48 Salmo 98 - 90", "artist": "ICISP", "filename": "48 Salmo 98 (90).mp3", "lyrics": ""}, {"title": "49 Salmo 117 - 93", "artist": "ICISP", "filename": "49 Salmo 117 (93).mp3", "lyrics": ""}, {"title": "50 Salmo 84 - 87", "artist": "ICISP", "filename": "50 Salmo 84 (87).mp3", "lyrics": ""}];
+
+    // Catálogo de pastas/categorias no GitHub:
+    // Você pode adicionar novas pastas aqui no código (ex: 'playback', 'louvores-externos')
+    // ou criar diretamente pelo botão "+ Pastas" na barra inferior.
+    const DEFAULT_CATEGORIES = [
+      {
+        id: 'musicas',
+        label: 'Músicas',
+        folder: 'músicas',
+        icon: 'music',
+        tracks: INITIAL_TRACKS
+      },
+      {
+        id: 'playback',
+        label: 'Playback',
+        folder: 'playback',
+        icon: 'mic',
+        tracks: []
+      },
+      {
+        id: 'externos',
+        label: 'Louvores Ext.',
+        folder: 'louvores-externos',
+        icon: 'book',
+        tracks: []
+      }
+    ];
+
+    const ICONS = {
+      music: '<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+      mic: '<svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
+      book: '<svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+      more: '<svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>'
+    };
 
     const audioEl = document.getElementById('audio-el');
     const statusBadge = document.getElementById('status-badge');
@@ -260,7 +558,8 @@
     const currentTimeEl = document.getElementById('current-time');
     const durationTimeEl = document.getElementById('duration-time');
 
-    let tracks = [];
+    let categories = [];
+    let activeCategoryId = 'musicas';
     let currentIndex = -1;
     let candidateUrls = [];
     let candidateIdx = 0;
@@ -273,16 +572,68 @@
       window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3200);
     }
 
-    function buildCandidateUrls(track) {
+    function loadSavedData() {
+      try {
+        const saved = localStorage.getItem('icisp_categories_v1');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            categories = parsed;
+            return;
+          }
+        }
+      } catch (e) {}
+      categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem('icisp_categories_v1', JSON.stringify(categories));
+      } catch (e) {}
+    }
+
+    function getActiveCategory() {
+      return categories.find(c => c.id === activeCategoryId) || categories[0];
+    }
+
+    function renderBottomNav() {
+      const nav = document.getElementById('bottom-nav');
+      const itemsHtml = categories.map(cat => `
+        <button class="nav-item ${cat.id === activeCategoryId ? 'active' : ''}" onclick="selectCategory('${cat.id}')">
+          ${ICONS[cat.icon] || ICONS.music}
+          <span>${escapeHtml(cat.label)}</span>
+        </button>
+      `).join('');
+
+      nav.innerHTML = itemsHtml + `
+        <button class="nav-item" onclick="openAddCategoryModal()">
+          ${ICONS.more}
+          <span>Mais</span>
+        </button>
+      `;
+    }
+
+    function selectCategory(catId) {
+      activeCategoryId = catId;
+      currentIndex = -1;
+      closeLyricsView();
+      const cat = getActiveCategory();
+      document.getElementById('category-subtitle').textContent = `Pasta: ${cat.folder} • ${cat.tracks.length} faixa(s)`;
+      document.getElementById('playlist-label').innerHTML = `${escapeHtml(cat.label)} (<span id="count">${cat.tracks.length}</span>)`;
+      renderBottomNav();
+      renderPlaylist();
+    }
+
+    function buildCandidateUrls(track, folderName) {
       if (track.url) return [track.url];
       const enc = encodeURIComponent(track.filename);
       const nfcEnc = encodeURIComponent(track.filename.normalize('NFC'));
       const nfdEnc = encodeURIComponent(track.filename.normalize('NFD'));
+      const f = folderName || 'músicas';
       const list = [
-        `./${encodeURIComponent(AUDIO_FOLDER)}/${enc}`,
-        `./${encodeURIComponent(AUDIO_FOLDER.normalize('NFC'))}/${nfcEnc}`,
-        `./${encodeURIComponent(AUDIO_FOLDER.normalize('NFD'))}/${nfdEnc}`,
-        `./musicas/${enc}`,
+        `./${encodeURIComponent(f)}/${enc}`,
+        `./${encodeURIComponent(f.normalize('NFC'))}/${nfcEnc}`,
+        `./${encodeURIComponent(f.normalize('NFD'))}/${nfdEnc}`,
         `./${enc}`
       ];
       return [...new Set(list)];
@@ -295,55 +646,23 @@
       return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-    function decodeSharedPlaylist(encoded) {
-      const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
-      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-      const binary = atob(padded);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      const jsonStr = new TextDecoder().decode(bytes);
-      return JSON.parse(jsonStr);
-    }
-
-    function encodeSharedPlaylist(items) {
-      const jsonStr = JSON.stringify(items);
-      const bytes = new TextEncoder().encode(jsonStr);
-      let binary = '';
-      for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    }
-
-    function loadState() {
-      try {
-        const params = new URLSearchParams(window.location.search || '');
-        const shared = params.get('p');
-        if (shared) {
-          const decoded = decodeSharedPlaylist(shared);
-          if (Array.isArray(decoded) && decoded.length > 0) {
-            tracks = decoded;
-            showToast('Playlist compartilhada carregada!');
-            return;
-          }
-        }
-      } catch (e) {}
-      tracks = DEFAULT_TRACKS.map(item => ({ ...item }));
-    }
-
     function renderPlaylist() {
+      const cat = getActiveCategory();
       const ul = document.getElementById('playlist');
       const query = (document.getElementById('search-box').value || '').trim().toLowerCase();
-      document.getElementById('count').textContent = tracks.length;
+      const countEl = document.getElementById('count');
+      if (countEl) countEl.textContent = cat.tracks.length;
+      document.getElementById('category-subtitle').textContent = `Pasta: ${cat.folder} • ${cat.tracks.length} faixa(s)`;
 
-      const filtered = tracks
+      const filtered = cat.tracks
         .map((t, idx) => ({ track: t, index: idx }))
         .filter(({ track }) => !query || track.title.toLowerCase().includes(query) || (track.artist || '').toLowerCase().includes(query));
 
       if (filtered.length === 0) {
-        ul.innerHTML = '<li style="color:rgba(255,255,255,0.55);font-size:0.82rem;text-align:center;padding:12px;">Nenhuma música encontrada.</li>';
+        ul.innerHTML = `<li style="color:rgba(255,255,255,0.6);font-size:0.82rem;text-align:center;padding:16px;line-height:1.45;">
+          Nenhuma faixa cadastrada na pasta <strong>${escapeHtml(cat.folder)}</strong> ainda.<br/>
+          Clique em <strong>+ Faixa</strong> acima para adicionar os MP3 desta pasta.
+        </li>`;
         return;
       }
 
@@ -351,14 +670,75 @@
         <li class="track-item ${i === currentIndex ? 'active' : ''}" onclick="playTrack(${i}, true)">
           <div class="track-meta">
             <strong>${i === currentIndex ? '▶ ' : ''}${escapeHtml(t.title)}</strong>
-            <span>${escapeHtml(t.artist || 'ICISP')}</span>
+            <span>${escapeHtml(t.artist || cat.label)}</span>
           </div>
+          <span class="lyric-pill">${t.lyrics && t.lyrics.trim() ? 'Letra ✓' : '+ Letra'}</span>
         </li>
       `).join('');
     }
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function openLyricsView(track, cat) {
+      document.getElementById('lyrics-title').textContent = track.title;
+      document.getElementById('lyrics-category-label').textContent = `${cat.label} • ICISP`;
+      const display = document.getElementById('lyrics-display');
+      const editor = document.getElementById('lyrics-editor');
+      editor.classList.remove('open');
+      display.style.display = 'block';
+
+      if (track.lyrics && track.lyrics.trim()) {
+        display.textContent = track.lyrics;
+      } else {
+        display.innerHTML = `<div class="lyrics-empty-hint">
+          Ainda não há letra salva para <strong>${escapeHtml(track.title)}</strong>.<br/><br/>
+          Toque em <strong>••• Letra</strong> no canto superior direito para colar a letra desta canção.
+        </div>`;
+      }
+
+      document.getElementById('lyrics-stage').classList.add('active');
+      document.getElementById('playlist-card').classList.add('hidden');
+      document.getElementById('main-header').style.display = 'none';
+      document.getElementById('player-card').classList.add('compact');
+    }
+
+    function closeLyricsView() {
+      document.getElementById('lyrics-stage').classList.remove('active');
+      document.getElementById('playlist-card').classList.remove('hidden');
+      document.getElementById('main-header').style.display = 'block';
+      document.getElementById('player-card').classList.remove('compact');
+    }
+
+    function toggleLyricsEditor() {
+      const cat = getActiveCategory();
+      if (currentIndex < 0 || !cat.tracks[currentIndex]) return;
+      const track = cat.tracks[currentIndex];
+      const editor = document.getElementById('lyrics-editor');
+      const display = document.getElementById('lyrics-display');
+      const textarea = document.getElementById('lyrics-textarea');
+
+      if (editor.classList.contains('open')) {
+        editor.classList.remove('open');
+        display.style.display = 'block';
+      } else {
+        textarea.value = track.lyrics || '';
+        display.style.display = 'none';
+        editor.classList.add('open');
+        textarea.focus();
+      }
+    }
+
+    function saveCurrentLyric() {
+      const cat = getActiveCategory();
+      if (currentIndex < 0 || !cat.tracks[currentIndex]) return;
+      const text = document.getElementById('lyrics-textarea').value;
+      cat.tracks[currentIndex].lyrics = text;
+      saveData();
+      openLyricsView(cat.tracks[currentIndex], cat);
+      renderPlaylist();
+      showToast('Letra salva com sucesso!');
     }
 
     function tryCurrentCandidate(autoStart) {
@@ -370,34 +750,43 @@
         }
       } else {
         btnPlay.textContent = '▶';
-        statusBadge.textContent = 'Arquivo não encontrado';
-        showToast('Verifique se o arquivo está dentro da pasta músicas no GitHub.');
+        statusBadge.textContent = 'Arquivo não encontrado na pasta';
+        showToast('MP3 não encontrado na pasta selecionada do GitHub.');
       }
     }
 
     function playTrack(idx, autoStart = true) {
-      if (idx < 0 || idx >= tracks.length) return;
+      const cat = getActiveCategory();
+      if (idx < 0 || idx >= cat.tracks.length) return;
       currentIndex = idx;
-      const t = tracks[idx];
+      const t = cat.tracks[idx];
       document.getElementById('track-title').textContent = t.title;
-      document.getElementById('track-artist').textContent = t.artist || 'ICISP';
+      document.getElementById('track-artist').textContent = t.artist || cat.label;
       statusBadge.textContent = autoStart ? 'Tocando...' : 'Pronto para tocar';
       seekBar.value = 0;
       currentTimeEl.textContent = '0:00';
       durationTimeEl.textContent = '0:00';
       renderPlaylist();
 
-      candidateUrls = buildCandidateUrls(t);
+      if (autoStart) {
+        openLyricsView(t, cat);
+      }
+
+      candidateUrls = buildCandidateUrls(t, cat.folder);
       candidateIdx = 0;
       tryCurrentCandidate(autoStart);
     }
 
     function togglePlay() {
-      if (currentIndex < 0 && tracks.length > 0) {
+      const cat = getActiveCategory();
+      if (currentIndex < 0 && cat.tracks.length > 0) {
         playTrack(0, true);
         return;
       }
       if (audioEl.paused) {
+        if (currentIndex >= 0 && cat.tracks[currentIndex]) {
+          openLyricsView(cat.tracks[currentIndex], cat);
+        }
         if (!audioEl.src) {
           tryCurrentCandidate(true);
         } else {
@@ -414,13 +803,15 @@
     }
 
     function nextTrack() {
-      if (tracks.length === 0) return;
-      playTrack((currentIndex + 1) % tracks.length, true);
+      const cat = getActiveCategory();
+      if (cat.tracks.length === 0) return;
+      playTrack((currentIndex + 1) % cat.tracks.length, true);
     }
 
     function prevTrack() {
-      if (tracks.length === 0) return;
-      playTrack((currentIndex - 1 + tracks.length) % tracks.length, true);
+      const cat = getActiveCategory();
+      if (cat.tracks.length === 0) return;
+      playTrack((currentIndex - 1 + cat.tracks.length) % cat.tracks.length, true);
     }
 
     audioEl.addEventListener('play', () => {
@@ -430,7 +821,7 @@
 
     audioEl.addEventListener('pause', () => {
       btnPlay.textContent = '▶';
-      if (statusBadge.textContent !== 'Arquivo não encontrado') {
+      if (!statusBadge.textContent.includes('não encontrado')) {
         statusBadge.textContent = 'Pausado';
       }
     });
@@ -459,8 +850,90 @@
       tryCurrentCandidate(!audioEl.paused || statusBadge.textContent === 'Tocando...');
     });
 
+    /* Modais para adicionar pastas/categorias e músicas */
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.remove('open');
+    }
+
+    function openAddCategoryModal() {
+      const box = document.getElementById('modal-content');
+      box.innerHTML = `
+        <h3>Nova Pasta / Categoria na Barra</h3>
+        <p>Crie um ícone novo na barra inferior apontando para a pasta que você criou no GitHub (ex.: <strong>playback</strong> ou <strong>louvores-externos</strong>).</p>
+        <input type="text" class="modal-input" id="new-cat-label" placeholder="Nome no ícone (ex: Louvores Externos)" />
+        <input type="text" class="modal-input" id="new-cat-folder" placeholder="Nome exato da pasta no GitHub (ex: louvores-externos)" />
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-gradient" style="flex:1;" onclick="confirmAddCategory()">Adicionar Ícone</button>
+          <button class="icon-action" onclick="closeModal()">Fechar</button>
+        </div>
+      `;
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    function confirmAddCategory() {
+      const label = (document.getElementById('new-cat-label').value || '').trim();
+      const folder = (document.getElementById('new-cat-folder').value || '').trim().replace(/^\/+|\/+$/g, '');
+      if (!label || !folder) {
+        showToast('Preencha o nome do ícone e o nome da pasta no GitHub.');
+        return;
+      }
+      const id = 'cat_' + Date.now();
+      categories.push({
+        id,
+        label,
+        folder,
+        icon: 'music',
+        tracks: []
+      });
+      saveData();
+      closeModal();
+      selectCategory(id);
+      showToast(`Categoria "${label}" criada!`);
+    }
+
+    function openAddTrackModal() {
+      const cat = getActiveCategory();
+      const box = document.getElementById('modal-content');
+      box.innerHTML = `
+        <h3>Adicionar Faixas em "${escapeHtml(cat.label)}"</h3>
+        <p>Cole os nomes exatos dos arquivos <strong>.mp3</strong> que você subiu na pasta <strong>${escapeHtml(cat.folder)}</strong> do GitHub (um por linha).</p>
+        <textarea class="lyrics-textarea" style="min-height:130px;" id="bulk-mp3-input" placeholder="01 Louvor Exemplo (10).mp3&#10;02 Outro Louvor (12).mp3"></textarea>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-gradient" style="flex:1;" onclick="confirmAddTracks()">Adicionar à Lista</button>
+          <button class="icon-action" onclick="closeModal()">Fechar</button>
+        </div>
+      `;
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    function confirmAddTracks() {
+      const raw = document.getElementById('bulk-mp3-input').value || '';
+      const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.toLowerCase().endsWith('.mp3'));
+      if (lines.length === 0) {
+        showToast('Cole ao menos um nome de arquivo terminado em .mp3');
+        return;
+      }
+      const cat = getActiveCategory();
+      lines.forEach(fn => {
+        let base = fn.replace(/\.mp3$/i, '').trim();
+        const m = base.match(/\(\s*(\d+)\s*\)/);
+        const num = m ? m[1] : '';
+        let clean = base.replace(/\s*\(\s*\d+\s*\)/g, ' ').replace(/\s+/g, ' ').trim();
+        const title = num ? `${clean} - ${num}` : clean;
+        cat.tracks.push({
+          title,
+          artist: `${cat.label} • ICISP`,
+          filename: fn,
+          lyrics: ''
+        });
+      });
+      saveData();
+      closeModal();
+      renderPlaylist();
+      showToast(`${lines.length} faixa(s) adicionada(s)!`);
+    }
+
     function copyShareLink() {
-      if (tracks.length === 0) return;
       const base = (window.location.href || SITE_URL).split('?')[0].split('#')[0] || SITE_URL;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(base).then(() => {
@@ -473,11 +946,9 @@
       }
     }
 
-    loadState();
-    renderPlaylist();
-    if (tracks.length > 0) {
-      playTrack(0, false);
-    }
+    loadSavedData();
+    renderBottomNav();
+    selectCategory(categories[0].id);
   </script>
 </body>
 </html>
