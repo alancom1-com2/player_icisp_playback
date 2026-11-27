@@ -28,7 +28,7 @@
     }
     .container {
       width: 100%;
-      max-width: 640px;
+      max-width: 480px;
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -127,36 +127,34 @@
     .lyrics-scroll {
       flex: 1;
       overflow-y: auto;
-      overflow-x: hidden;
-      padding: 6px 2px 16px;
+      overflow-x: auto;
+      padding: 6px 4px 16px;
       color: #ffffff;
       font-size: 1.02rem;
       line-height: 1.55;
     }
-    /* Modo Letra Pura (sem cifra): centralizado, maiúsculo e fluido */
+    /* Modo Letra Pura (sem cifra): centralizado e fluido */
     .lyrics-scroll.mode-lyrics-only {
       text-align: center;
       white-space: pre-wrap;
-      word-break: break-word;
     }
     .lyrics-scroll.mode-lyrics-only .line-lyric {
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .lyrics-scroll.mode-lyrics-only .line-empty {
       height: 12px;
     }
-    /* Modo Cifra Ativa: alinhamento preciso ajustado automaticamente à largura da tela */
+    /* Modo Cifra Ativa: alinhamento preciso de acordes sobre a letra */
     .lyrics-scroll.mode-chords {
       text-align: left;
       font-family: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
-      font-size: clamp(0.56rem, 2.25vw, 0.88rem);
-      line-height: 1.42;
+      font-size: 0.84rem;
+      line-height: 1.38;
     }
     .line-intro {
       color: var(--chord);
       font-weight: 700;
-      white-space: pre-wrap;
-      word-break: break-word;
+      white-space: pre;
       margin-bottom: 6px;
       padding: 4px 6px;
       background: rgba(255, 215, 0, 0.07);
@@ -171,7 +169,6 @@
     }
     .line-lyric {
       color: #ffffff;
-      text-transform: uppercase;
     }
     .lyrics-scroll.mode-chords .line-lyric {
       white-space: pre;
@@ -724,12 +721,19 @@
 
     function renderBottomNav() {
       const nav = document.getElementById('bottom-nav');
-      nav.innerHTML = categories.map(cat => `
+      const itemsHtml = categories.map(cat => `
         <button class="nav-item ${cat.id === activeCategoryId ? 'active' : ''}" onclick="selectCategory('${cat.id}')">
           ${ICONS[cat.icon] || ICONS.music}
           <span>${escapeHtml(cat.label)}</span>
         </button>
       `).join('');
+
+      nav.innerHTML = itemsHtml + `
+        <button class="nav-item" onclick="openAddCategoryModal()">
+          ${ICONS.more}
+          <span>Mais</span>
+        </button>
+      `;
     }
 
     function selectCategory(catId) {
@@ -745,31 +749,18 @@
 
     function buildCandidateUrls(track, folderName) {
       if (track.url) return [track.url];
-      const rawName = (track.filename || '').trim();
-      const enc = encodeURIComponent(rawName);
-      const nfcEnc = encodeURIComponent(rawName.normalize('NFC'));
-      const nfdEnc = encodeURIComponent(rawName.normalize('NFD'));
-      const f = (folderName || 'músicas').trim();
-      const altFolders = ['músicas', 'musicas', 'playback', 'louvores-externos'].filter(x => x !== f);
-      const baseOrigin = (window.location.protocol.startsWith('http') && window.location.pathname && window.location.pathname !== '/')
-        ? window.location.href.split('?')[0].split('#')[0].replace(/\/[^/]*$/, '/')
-        : SITE_URL;
-
+      const enc = encodeURIComponent(track.filename);
+      const nfcEnc = encodeURIComponent(track.filename.normalize('NFC'));
+      const nfdEnc = encodeURIComponent(track.filename.normalize('NFD'));
+      const f = folderName || 'músicas';
+      const fallbackFolder = f === 'músicas' ? 'playback' : 'músicas';
       const list = [
         `./${encodeURIComponent(f)}/${enc}`,
         `./${encodeURIComponent(f.normalize('NFC'))}/${nfcEnc}`,
         `./${encodeURIComponent(f.normalize('NFD'))}/${nfdEnc}`,
-        `${baseOrigin}${encodeURIComponent(f)}/${enc}`,
-        `${SITE_URL}${encodeURIComponent(f)}/${enc}`
+        `./${encodeURIComponent(fallbackFolder)}/${enc}`,
+        `./${enc}`
       ];
-
-      altFolders.forEach(alt => {
-        list.push(`./${encodeURIComponent(alt)}/${enc}`);
-        list.push(`${SITE_URL}${encodeURIComponent(alt)}/${enc}`);
-      });
-
-      list.push(`./${enc}`);
-      list.push(`${SITE_URL}${enc}`);
       return [...new Set(list)];
     }
 
@@ -857,14 +848,12 @@
 
       if (showChords) {
         display.className = 'lyrics-scroll mode-chords';
-        display.style.fontSize = '';
         display.innerHTML = linesToRender.map(item => {
           if (item.type === 'empty') return '<div class="line-empty"></div>';
-          if (item.type === 'intro') return `<div class="line-intro">${escapeHtml(item.text.trim())}</div>`;
-          if (item.type === 'chord') return `<div class="line-chord">${escapeHtml(item.text.replace(/\s+$/, ''))}</div>`;
-          return `<div class="line-lyric">${escapeHtml(item.text.replace(/\s+$/, ''))}</div>`;
+          if (item.type === 'intro') return `<div class="line-intro">${escapeHtml(item.text)}</div>`;
+          if (item.type === 'chord') return `<div class="line-chord">${escapeHtml(item.text)}</div>`;
+          return `<div class="line-lyric">${escapeHtml(item.text)}</div>`;
         }).join('');
-        requestAnimationFrame(() => fitChordsToContainer());
       } else {
         display.className = 'lyrics-scroll mode-lyrics-only';
         const filtered = linesToRender.filter(item => item.type === 'lyric' || item.type === 'empty');
@@ -881,28 +870,6 @@
       }
       display.scrollTop = 0;
     }
-
-    function fitChordsToContainer() {
-      const display = document.getElementById('lyrics-display');
-      if (!display || !showChords) return;
-      display.style.fontSize = '14px';
-      const available = display.clientWidth - 6;
-      if (available <= 0) return;
-      let maxScroll = 0;
-      display.querySelectorAll('.line-chord, .line-lyric').forEach(el => {
-        if (el.scrollWidth > maxScroll) maxScroll = el.scrollWidth;
-      });
-      if (maxScroll > available) {
-        const scaled = Math.max(7.2, Math.floor((available / maxScroll) * 14 * 10) / 10);
-        display.style.fontSize = scaled + 'px';
-      }
-    }
-
-    window.addEventListener('resize', () => {
-      if (showChords && document.getElementById('lyrics-stage').classList.contains('active')) {
-        fitChordsToContainer();
-      }
-    });
 
     function openLyricsView(track, cat) {
       document.getElementById('lyrics-title').textContent = track.title;
@@ -968,21 +935,14 @@
       showToast('Letra e cifras salvas com sucesso!');
     }
 
-    let shouldAutoPlay = false;
-
     function tryCurrentCandidate(autoStart) {
-      shouldAutoPlay = !!autoStart;
       if (candidateIdx < candidateUrls.length) {
         audioEl.src = candidateUrls[candidateIdx];
         audioEl.load();
-        if (shouldAutoPlay) {
-          const playPromise = audioEl.play();
-          if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch(() => {});
-          }
+        if (autoStart) {
+          audioEl.play().catch(() => {});
         }
       } else {
-        shouldAutoPlay = false;
         btnPlay.textContent = '▶';
         statusBadge.textContent = 'Arquivo não encontrado na pasta';
         showToast('MP3 não encontrado na pasta selecionada do GitHub.');
@@ -1073,21 +1033,14 @@
       }
     });
 
-    audioEl.addEventListener('canplay', () => {
-      if (shouldAutoPlay && audioEl.paused) {
-        audioEl.play().catch(() => {});
-      }
-    });
-
     audioEl.addEventListener('ended', () => {
-      shouldAutoPlay = true;
       nextTrack();
     });
 
     audioEl.addEventListener('error', () => {
       if (currentIndex < 0) return;
       candidateIdx++;
-      tryCurrentCandidate(shouldAutoPlay);
+      tryCurrentCandidate(!audioEl.paused || statusBadge.textContent === 'Tocando...');
     });
 
     /* Modais para adicionar pastas/categorias e músicas */
